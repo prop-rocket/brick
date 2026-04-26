@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { queryClient } from '../lib/queryClient.js'
 
 const AuthContext = createContext(null)
 
@@ -16,8 +17,9 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession ?? null)
+      if (event === 'SIGNED_OUT') queryClient.clear()
     })
 
     return () => {
