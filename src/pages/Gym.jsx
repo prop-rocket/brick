@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Dumbbell } from 'lucide-react'
+import { Plus, Dumbbell, Trophy } from 'lucide-react'
 import {
   useWorkoutTemplates,
   useStartWorkout,
@@ -47,7 +47,17 @@ export default function Gym() {
 
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="heading text-3xl">Gym</h1>
+      <header className="flex items-center justify-between">
+        <h1 className="heading text-3xl">Gym</h1>
+        <button
+          type="button"
+          onClick={() => navigate('/gym/prs')}
+          className="heading min-h-tap inline-flex items-center gap-1.5 rounded-full bg-ash px-3 text-sm text-iron hover:bg-dust/40 hover:text-chalk"
+        >
+          <Trophy size={16} fill="currentColor" className="text-brick-red" />
+          <span>PRs</span>
+        </button>
+      </header>
 
       {/* Presets */}
       <div className="flex flex-col gap-2">

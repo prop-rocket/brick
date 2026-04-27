@@ -200,6 +200,7 @@ export function useFinishWorkout() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: workoutKey(data.id) })
       qc.invalidateQueries({ queryKey: WORKOUT_HISTORY_KEY })
+      qc.invalidateQueries({ queryKey: ['finished_workouts'] })
     },
   })
 }
@@ -266,6 +267,7 @@ export function useLogSet() {
     },
     onSettled: (_data, _err, vars) => {
       qc.invalidateQueries({ queryKey: workoutSetsKey(vars.workoutId) })
+      qc.invalidateQueries({ queryKey: ['all_user_sets'] })
     },
   })
 }
@@ -283,6 +285,7 @@ export function useDeleteSet() {
     },
     onSuccess: ({ workoutId }) => {
       qc.invalidateQueries({ queryKey: workoutSetsKey(workoutId) })
+      qc.invalidateQueries({ queryKey: ['all_user_sets'] })
     },
   })
 }

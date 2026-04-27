@@ -1,13 +1,24 @@
-import { Check, Plus } from 'lucide-react'
+import { Check, Plus, Trophy } from 'lucide-react'
 import StepperInput from './StepperInput.jsx'
 
 // Single logged-set row (read-only)
-function SetRow({ set }) {
+function SetRow({ set, isPR }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 text-sm">
       <span className="w-8 font-mono text-iron">{set.set_number}</span>
       <span className="flex-1 font-mono text-chalk">{set.reps} reps</span>
-      <span className="font-mono text-chalk">{set.weight_kg} kg</span>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-chalk">{set.weight_kg} kg</span>
+        {isPR && (
+          <span
+            aria-label="New personal record"
+            title="New personal record"
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-brick-red/20 text-brick-red"
+          >
+            <Trophy size={11} strokeWidth={2.5} fill="currentColor" />
+          </span>
+        )}
+      </div>
       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick-red">
         <Check size={14} strokeWidth={3} className="text-chalk" />
       </div>
@@ -73,6 +84,7 @@ export default function ExerciseLogCard({
   onActivateStaging,
   onConfirmSet,
   logPending,
+  prSetIds,
 }) {
   const hasStaging = staging !== null
 
@@ -97,7 +109,7 @@ export default function ExerciseLogCard({
       {loggedSets.length > 0 && (
         <div className="divide-y divide-dust/20">
           {loggedSets.map((s) => (
-            <SetRow key={s.id} set={s} />
+            <SetRow key={s.id} set={s} isPR={prSetIds?.has(s.id)} />
           ))}
         </div>
       )}

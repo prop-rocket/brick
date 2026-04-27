@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Dumbbell } from 'lucide-react'
+import { ArrowLeft, Dumbbell, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useWorkoutSummary } from '../lib/gymApi.js'
+import { usePreviousTemplateRun } from '../lib/statsApi.js'
 
 function formatDuration(ms) {
   if (!ms) return '—'
@@ -22,10 +23,53 @@ function formatDate(iso) {
   })
 }
 
+function VolumeDelta({ current, previous }) {
+  if (previous == null || previous === 0) {
+    return null
+  }
+  const diff = current - previous
+  const pct = previous > 0 ? Math.round((diff / previous) * 100) : 0
+
+  if (Math.abs(diff) < 0.5) {
+    return (
+      <span
+        title="No change vs last time"
+        className="inline-flex items-center gap-1 rounded-full bg-mortar/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-iron"
+      >
+        <Minus size={10} strokeWidth={3} />
+        Same
+      </span>
+    )
+  }
+
+  const up = diff > 0
+  return (
+    <span
+      title={`vs last time: ${up ? '+' : ''}${Math.round(diff)} kg (${up ? '+' : ''}${pct}%)`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
+        up ? 'bg-brick-red/15 text-brick-red' : 'bg-iron/15 text-iron'
+      }`}
+    >
+      {up ? (
+        <TrendingUp size={10} strokeWidth={2.5} />
+      ) : (
+        <TrendingDown size={10} strokeWidth={2.5} />
+      )}
+      {up ? '+' : ''}
+      {Math.round(diff)} kg
+    </span>
+  )
+}
+
 export default function WorkoutSummary() {
   const { workoutId } = useParams()
   const navigate = useNavigate()
   const { data, isLoading, isError } = useWorkoutSummary(workoutId)
+  const previousRun = usePreviousTemplateRun(
+    workoutId,
+    data?.workout?.template_id,
+    data?.workout?.started_at,
+  )
 
   if (isLoading) {
     return (
@@ -52,6 +96,8 @@ export default function WorkoutSummary() {
 
   const { workout, exercises, totalSets, totalVolume, durationMs } = data
   const templateName = workout.workout_templates?.name ?? 'Workout'
+  const previousData = previousRun.data
+  const hasComparison = !!previousData
 
   return (
     <div className="min-h-screen bg-mortar text-chalk">
@@ -90,6 +136,16 @@ export default function WorkoutSummary() {
           />
         </div>
 
+        {/* Total volume vs last time */}
+        {hasComparison && (
+          <div className="-mt-1 flex items-center justify-center gap-2 rounded-xl bg-ash/60 px-3 py-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-iron">
+              vs last time
+            </span>
+            <VolumeDelta current={totalVolume} previous={previousData.totalVolume} />
+          </div>
+        )}
+
         {/* Exercise breakdown */}
         {exercises.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-dust/40 py-10 text-center">
@@ -98,18 +154,29 @@ export default function WorkoutSummary() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {exercises.map((ex) => (
+            {exercises.map((ex) => {
+              const exVolume = ex.sets.reduce(
+                (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
+                0,
+              )
+              const previousExVolume = previousData?.volumeByExercise?.[ex.id] ?? 0
+              return (
               <div key={ex.id} className="overflow-hidden rounded-2xl bg-ash">
-                <div className="flex items-center justify-between border-b border-dust/30 px-4 py-3">
-                  <div>
-                    <p className="heading text-lg text-chalk">{ex.name}</p>
+                <div className="flex items-center justify-between gap-3 border-b border-dust/30 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="heading truncate text-lg text-chalk">{ex.name}</p>
                     <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-iron">
                       {ex.muscle_group}
                     </span>
                   </div>
-                  <span className="font-mono text-xs text-sand">
-                    {ex.sets.length} set{ex.sets.length !== 1 ? 's' : ''}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="font-mono text-xs text-sand">
+                      {ex.sets.length} set{ex.sets.length !== 1 ? 's' : ''}
+                    </span>
+                    {hasComparison && previousExVolume > 0 && (
+                      <VolumeDelta current={exVolume} previous={previousExVolume} />
+                    )}
+                  </div>
                 </div>
 
                 {ex.sets.length === 0 ? (
@@ -139,7 +206,8 @@ export default function WorkoutSummary() {
                   </div>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
 

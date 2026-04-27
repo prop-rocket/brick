@@ -8,6 +8,7 @@ import Body from './pages/Body.jsx'
 import Stats from './pages/Stats.jsx'
 import WorkoutLog from './pages/WorkoutLog.jsx'
 import WorkoutSummary from './pages/WorkoutSummary.jsx'
+import PersonalRecords from './pages/PersonalRecords.jsx'
 import AppShell from './components/AppShell.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
@@ -47,6 +48,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <WorkoutSummary />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gym/prs"
+        element={
+          <ProtectedRoute>
+            <PersonalRecords />
           </ProtectedRoute>
         }
       />

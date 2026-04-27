@@ -88,3 +88,43 @@ export function bestStreak(dates) {
   }
   return best
 }
+
+// Returns a stable string key for the ISO-Mon week containing `date`,
+// in the form "YYYY-MM-DD" (the date of the Monday).
+export function weekKey(date = new Date()) {
+  return toDateStr(mondayOf(date))
+}
+
+// Short readable label for a week's Monday, e.g. "Apr 7".
+export function weekLabel(date = new Date()) {
+  const monday = mondayOf(date)
+  return monday.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+// Returns N most recent week-Mondays as Date objects, oldest → newest.
+export function lastNWeeks(n) {
+  const out = []
+  const start = mondayOf(new Date())
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(start)
+    d.setDate(start.getDate() - i * 7)
+    out.push(d)
+  }
+  return out
+}
+
+// Returns N most recent days as Date objects, oldest → newest.
+export function lastNDays(n) {
+  const out = []
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(start)
+    d.setDate(start.getDate() - i)
+    out.push(d)
+  }
+  return out
+}

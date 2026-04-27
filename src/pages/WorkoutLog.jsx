@@ -8,9 +8,11 @@ import {
   useLogSet,
   useFinishWorkout,
 } from '../lib/gymApi.js'
+import { checkIsPR } from '../lib/statsApi.js'
 import ExerciseLogCard from '../components/ExerciseLogCard.jsx'
 import RestTimer from '../components/RestTimer.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
+import PRFlashOverlay from '../components/PRFlashOverlay.jsx'
 
 const REST_SECONDS = 90
 const DEFAULT_REPS = 8
@@ -80,6 +82,10 @@ export default function WorkoutLog() {
   // Per-exercise staging sets: { [exerciseId]: { reps, weightKg } | null }
   const [staging, setStaging] = useState({})
 
+  // PR tracking
+  const [prSetIds, setPrSetIds] = useState(new Set())
+  const [activePR, setActivePR] = useState(null)
+
   // Grouped sets by exercise
   const setsByExercise = useMemo(() => {
     const m = {}
@@ -106,16 +112,38 @@ export default function WorkoutLog() {
     const s = staging[exerciseId]
     if (!s) return
     const existing = setsByExercise[exerciseId] ?? []
+
+    // Check PR BEFORE inserting so the new set isn't included in the comparison.
+    let prResult = { isPR: false }
     try {
-      await logSet.mutateAsync({
+      prResult = await checkIsPR({ exerciseId, weightKg: s.weightKg })
+    } catch (e) {
+      console.warn('PR check failed', e)
+    }
+
+    try {
+      const logged = await logSet.mutateAsync({
         workoutId,
         exerciseId,
         setNumber: existing.length + 1,
         reps: s.reps,
         weightKg: s.weightKg,
       })
+
       // Keep values for next set (pre-filled)
       setStaging((prev) => ({ ...prev, [exerciseId]: { ...s } }))
+
+      if (prResult.isPR) {
+        setPrSetIds((prev) => {
+          const next = new Set(prev)
+          next.add(logged.id)
+          return next
+        })
+        const exerciseName =
+          templateExercises.find((te) => te.exercise_id === exerciseId)?.exercises?.name
+        setActivePR({ weightKg: s.weightKg, exerciseName })
+      }
+
       startRest()
     } catch (e) {
       console.error('Failed to log set', e)
@@ -184,6 +212,7 @@ export default function WorkoutLog() {
                 onActivateStaging={() => activateStaging(exercise.id)}
                 onConfirmSet={() => handleConfirmSet(exercise.id)}
                 logPending={logSet.isPending}
+                prSetIds={prSetIds}
               />
             )
           })
@@ -192,6 +221,9 @@ export default function WorkoutLog() {
 
       {/* Rest timer — slides up from bottom */}
       <RestTimer seconds={restSeconds} onSkip={skipRest} />
+
+      {/* PR flash overlay */}
+      <PRFlashOverlay pr={activePR} onDismiss={() => setActivePR(null)} />
 
       {/* Finish confirm */}
       <ConfirmDialog
