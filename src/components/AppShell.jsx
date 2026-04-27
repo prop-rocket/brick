@@ -5,6 +5,7 @@ import BrickLogo from './BrickLogo.jsx'
 import OfflineBanner from './OfflineBanner.jsx'
 import InstallBanner from './InstallBanner.jsx'
 import ToastStack from './ToastStack.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 
 export default function AppShell() {
   const navigate = useNavigate()
@@ -25,6 +26,7 @@ export default function AppShell() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <button
               type="button"
               onClick={() => navigate('/settings')}
