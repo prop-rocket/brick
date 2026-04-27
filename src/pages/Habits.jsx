@@ -162,7 +162,7 @@ function ListLoading() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="min-h-[72px] animate-pulse rounded-xl bg-ash/60"
+          className="min-h-[72px] animate-shimmer rounded-xl bg-ash/60"
         />
       ))}
     </div>

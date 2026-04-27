@@ -39,7 +39,7 @@ export default function PersonalRecords() {
         {isLoading ? (
           <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-xl bg-ash/60" />
+              <div key={i} className="h-16 animate-shimmer rounded-xl bg-ash/60" />
             ))}
           </div>
         ) : records.length === 0 ? (

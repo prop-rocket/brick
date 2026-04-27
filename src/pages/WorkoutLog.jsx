@@ -9,12 +9,12 @@ import {
   useFinishWorkout,
 } from '../lib/gymApi.js'
 import { checkIsPR } from '../lib/statsApi.js'
+import { getStoredRestSeconds } from './Settings.jsx'
 import ExerciseLogCard from '../components/ExerciseLogCard.jsx'
 import RestTimer from '../components/RestTimer.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import PRFlashOverlay from '../components/PRFlashOverlay.jsx'
 
-const REST_SECONDS = 90
 const DEFAULT_REPS = 8
 const DEFAULT_WEIGHT = 60
 
@@ -59,7 +59,7 @@ export default function WorkoutLog() {
 
   const startRest = () => {
     clearInterval(restIntervalRef.current)
-    setRestSeconds(REST_SECONDS)
+    setRestSeconds(getStoredRestSeconds())
     restIntervalRef.current = setInterval(() => {
       setRestSeconds((s) => {
         if (s <= 1) {

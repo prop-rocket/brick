@@ -13,7 +13,7 @@ function SetRow({ set, isPR }) {
           <span
             aria-label="New personal record"
             title="New personal record"
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-brick-red/20 text-brick-red"
+            className="animate-pr-pop flex h-5 w-5 items-center justify-center rounded-full bg-brick-red/20 text-brick-red"
           >
             <Trophy size={11} strokeWidth={2.5} fill="currentColor" />
           </span>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { todayStr } from './streakUtils.js'
+import { REALTIME_STALE } from './queryClient.js'
 
 export const HABITS_KEY = ['habits']
 export const HABIT_LOGS_KEY = ['habit_logs']
@@ -11,6 +12,7 @@ export function useHabits() {
   return useQuery({
     queryKey: HABITS_KEY,
     enabled: !!user,
+    staleTime: REALTIME_STALE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('habits')
@@ -27,6 +29,7 @@ export function useHabitLogs() {
   return useQuery({
     queryKey: HABIT_LOGS_KEY,
     enabled: !!user,
+    staleTime: REALTIME_STALE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('habit_logs')

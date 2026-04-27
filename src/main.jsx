@@ -6,6 +6,8 @@ import App from './App.jsx'
 import { queryClient } from './lib/queryClient.js'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { WeightUnitProvider } from './context/WeightUnitContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,9 +15,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <WeightUnitProvider>
+            <ToastProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </ToastProvider>
+          </WeightUnitProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

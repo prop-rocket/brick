@@ -417,9 +417,9 @@ function ExerciseSelect({ value, onChange, exercises }) {
 function Loading() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="h-72 animate-pulse rounded-2xl bg-ash/60" />
-      <div className="h-72 animate-pulse rounded-2xl bg-ash/60" />
-      <div className="h-56 animate-pulse rounded-2xl bg-ash/60" />
+      <div className="h-72 animate-shimmer rounded-2xl bg-ash/60" />
+      <div className="h-72 animate-shimmer rounded-2xl bg-ash/60" />
+      <div className="h-56 animate-shimmer rounded-2xl bg-ash/60" />
     </div>
   )
 }

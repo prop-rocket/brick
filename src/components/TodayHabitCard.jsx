@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Check, Flame } from 'lucide-react'
 import WeeklyRing from './WeeklyRing.jsx'
 
@@ -11,6 +12,17 @@ export default function TodayHabitCard({
 }) {
   const accent = habit.color ?? '#C8432B'
   const isWeekly = habit.frequency_type === 'weekly'
+  const checkRef = useRef(null)
+
+  const handleToggle = () => {
+    if (!completed && checkRef.current) {
+      checkRef.current.classList.remove('animate-check-bounce')
+      // Force reflow to restart animation
+      void checkRef.current.offsetWidth
+      checkRef.current.classList.add('animate-check-bounce')
+    }
+    onToggle?.(habit)
+  }
 
   return (
     <li
@@ -18,7 +30,6 @@ export default function TodayHabitCard({
         completed ? 'opacity-60' : 'opacity-100'
       }`}
     >
-      {/* Active indicator stripe */}
       <span
         aria-hidden
         className="absolute inset-y-0 left-0 w-1"
@@ -58,12 +69,13 @@ export default function TodayHabitCard({
       )}
 
       <button
+        ref={checkRef}
         type="button"
-        onClick={() => onToggle?.(habit)}
+        onClick={handleToggle}
         disabled={pending}
         aria-pressed={completed}
         aria-label={completed ? `Mark ${habit.name} incomplete` : `Mark ${habit.name} complete`}
-        className={`min-h-tap min-w-tap flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+        className={`min-h-tap min-w-tap flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-colors active:scale-95 ${
           completed
             ? 'border-brick-red bg-brick-red text-chalk'
             : 'border-dust text-transparent hover:border-iron'

@@ -348,8 +348,8 @@ function EmptyCard({ title, message }) {
 function Loading() {
   return (
     <div className="flex flex-col gap-3">
-      <div className="h-72 animate-pulse rounded-2xl bg-ash/60" />
-      <div className="h-20 animate-pulse rounded-2xl bg-ash/60" />
+      <div className="h-72 animate-shimmer rounded-2xl bg-ash/60" />
+      <div className="h-20 animate-shimmer rounded-2xl bg-ash/60" />
     </div>
   )
 }

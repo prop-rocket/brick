@@ -168,7 +168,7 @@ function LoadingSkeletons({ count = 4 }) {
   return (
     <div className="flex flex-col gap-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="h-28 animate-pulse rounded-2xl bg-ash/60" />
+        <div key={i} className="h-28 animate-shimmer rounded-2xl bg-ash/60" />
       ))}
     </div>
   )

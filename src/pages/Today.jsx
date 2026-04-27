@@ -104,12 +104,12 @@ export default function Today() {
 function ListLoading() {
   return (
     <section className="flex flex-col gap-4">
-      <div className="h-8 w-32 animate-pulse rounded bg-ash/60" />
+      <div className="h-8 w-32 animate-shimmer rounded bg-ash/60" />
       <div className="flex flex-col gap-2">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="min-h-[72px] animate-pulse rounded-xl bg-ash/60"
+            className="min-h-[72px] animate-shimmer rounded-xl bg-ash/60"
           />
         ))}
       </div>
