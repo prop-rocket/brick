@@ -7,12 +7,12 @@ export default {
       colors: {
         'brick-red': '#C8432B',
         ember: '#E85D3A',
-        mortar: '#1C1A18',
-        ash: '#2E2B28',
-        dust: '#4A4540',
-        iron: '#8C8078',
-        sand: '#D4C9B8',
-        chalk: '#F0EBE3',
+        mortar: 'rgb(var(--color-mortar) / <alpha-value>)',
+        ash:    'rgb(var(--color-ash)    / <alpha-value>)',
+        dust:   'rgb(var(--color-dust)   / <alpha-value>)',
+        iron:   'rgb(var(--color-iron)   / <alpha-value>)',
+        sand:   'rgb(var(--color-sand)   / <alpha-value>)',
+        chalk:  'rgb(var(--color-chalk)  / <alpha-value>)',
       },
       fontFamily: {
         display: ['"Barlow Condensed"', 'system-ui', 'sans-serif'],

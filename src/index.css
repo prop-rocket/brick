@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Color tokens (dark = default) ─────────────────────────────────── */
+:root {
+  --color-mortar: 28 26 24;
+  --color-ash:    46 43 40;
+  --color-dust:   74 69 64;
+  --color-iron:   140 128 120;
+  --color-sand:   212 201 184;
+  --color-chalk:  240 235 227;
+}
+
+/* Light mode — semantic swap */
+html:not(.dark) {
+  --color-mortar: 240 235 227;
+  --color-ash:    220 213 200;
+  --color-dust:   140 128 120;
+  --color-iron:   108 98 90;
+  --color-sand:   74 69 64;
+  --color-chalk:  28 26 24;
+}
+
 @layer base {
   html,
   body,
@@ -11,10 +31,6 @@
 
   body {
     @apply font-sans text-chalk bg-mortar antialiased;
-  }
-
-  html:not(.dark) body {
-    @apply text-mortar bg-chalk;
   }
 
   /* iOS / Android safe-area helper */
@@ -38,9 +54,9 @@
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    #2E2B28 25%,
-    #4A4540 50%,
-    #2E2B28 75%
+    rgb(var(--color-ash)) 25%,
+    rgb(var(--color-dust)) 50%,
+    rgb(var(--color-ash)) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
