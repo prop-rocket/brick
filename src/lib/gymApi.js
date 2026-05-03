@@ -156,13 +156,21 @@ export function useWorkout(workoutId) {
     queryKey: workoutKey(workoutId),
     enabled: !!user && !!workoutId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: workout, error } = await supabase
         .from('workouts')
-        .select('id, started_at, ended_at, notes, template_id, workout_templates(id, name)')
+        .select('id, started_at, ended_at, notes, template_id')
         .eq('id', workoutId)
         .single()
       if (error) throw error
-      return data
+      if (workout.template_id) {
+        const { data: tmpl } = await supabase
+          .from('workout_templates')
+          .select('id, name')
+          .eq('id', workout.template_id)
+          .single()
+        workout.workout_templates = tmpl ?? null
+      }
+      return workout
     },
   })
 }
@@ -300,13 +308,20 @@ export function useWorkoutHistory() {
     queryFn: async () => {
       const { data: workouts, error: wErr } = await supabase
         .from('workouts')
-        .select('id, started_at, ended_at, template_id, workout_templates(id, name)')
+        .select('id, started_at, ended_at, template_id')
         .not('ended_at', 'is', null)
         .order('started_at', { ascending: false })
         .limit(30)
 
       if (wErr) throw wErr
       if (!workouts?.length) return []
+
+      const templateIds = [...new Set(workouts.map((w) => w.template_id).filter(Boolean))]
+      const { data: templates } = templateIds.length
+        ? await supabase.from('workout_templates').select('id, name').in('id', templateIds)
+        : { data: [] }
+      const templateMap = {}
+      for (const t of templates ?? []) templateMap[t.id] = t
 
       const ids = workouts.map((w) => w.id)
       const { data: sets, error: sErr } = await supabase
@@ -326,6 +341,7 @@ export function useWorkoutHistory() {
         const ws = setsByWorkout[w.id] ?? []
         return {
           ...w,
+          workout_templates: templateMap[w.template_id] ?? null,
           totalSets: ws.length,
           totalVolume: ws.reduce((sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0), 0),
           exerciseCount: new Set(ws.map((s) => s.exercise_id)).size,
@@ -344,10 +360,19 @@ export function useWorkoutSummary(workoutId) {
     queryFn: async () => {
       const { data: workout, error: wErr } = await supabase
         .from('workouts')
-        .select('id, started_at, ended_at, notes, template_id, workout_templates(id, name)')
+        .select('id, started_at, ended_at, notes, template_id')
         .eq('id', workoutId)
         .single()
       if (wErr) throw wErr
+
+      if (workout.template_id) {
+        const { data: tmpl } = await supabase
+          .from('workout_templates')
+          .select('id, name')
+          .eq('id', workout.template_id)
+          .single()
+        workout.workout_templates = tmpl ?? null
+      }
 
       const [{ data: templateEx, error: teErr }, { data: sets, error: sErr }] =
         await Promise.all([

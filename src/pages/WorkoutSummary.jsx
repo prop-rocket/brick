@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Dumbbell, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useWorkoutSummary } from '../lib/gymApi.js'
 import { usePreviousTemplateRun } from '../lib/statsApi.js'
+import LiftComparison from '../components/LiftComparison.jsx'
 
 function formatDuration(ms) {
   if (!ms) return '—'
@@ -135,6 +136,9 @@ export default function WorkoutSummary() {
             }
           />
         </div>
+
+        {/* Real-world lift comparison */}
+        <LiftComparison totalVolume={totalVolume} />
 
         {/* Total volume vs last time */}
         {hasComparison && (

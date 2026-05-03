@@ -1,12 +1,12 @@
 import { Play, Trash2 } from 'lucide-react'
 
-const MUSCLE_COLORS = {
-  Push: '#C8432B',
-  Pull: '#E85D3A',
-  Legs: '#8C8078',
-  Core: '#D4C9B8',
-  Cardio: '#4A4540',
-  Custom: '#F0EBE3',
+const MUSCLE_STYLES = {
+  Push:   { bg: '#C8432B', text: '#F0EBE3' },
+  Pull:   { bg: '#E85D3A', text: '#F0EBE3' },
+  Legs:   { bg: '#8C8078', text: '#F0EBE3' },
+  Core:   { bg: '#D4C9B8', text: '#1C1A18' },
+  Cardio: { bg: '#4A4540', text: '#F0EBE3' },
+  Custom: { bg: '#F0EBE3', text: '#1C1A18' },
 }
 
 export default function TemplateCard({ template, onStart, onDelete, starting }) {
@@ -41,11 +41,12 @@ export default function TemplateCard({ template, onStart, onDelete, starting }) 
           {preview.map((te) => {
             const name = te.exercises?.name ?? te.name ?? '—'
             const group = te.exercises?.muscle_group ?? te.muscle_group
+            const style = MUSCLE_STYLES[group] ?? { bg: '#8C8078', text: '#F0EBE3' }
             return (
               <span
                 key={te.exercise_id ?? te.id}
-                className="rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-mortar"
-                style={{ backgroundColor: MUSCLE_COLORS[group] ?? '#8C8078' }}
+                className="rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+                style={{ backgroundColor: style.bg, color: style.text }}
               >
                 {name}
               </span>
