@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { BarChart3, ChevronDown } from 'lucide-react'
+import { BarChart3, ChevronDown, UtensilsCrossed } from 'lucide-react'
+import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts'
 import {
   useVolumeByWeek,
   useExerciseProgress,
@@ -9,11 +10,14 @@ import {
 } from '../lib/statsApi.js'
 import { useExercises } from '../lib/gymApi.js'
 import { useHabits, useHabitLogs } from '../lib/habitsApi.js'
+import { useDailyCaloriesByWeek } from '../lib/foodApi.js'
+import { useWeekWater } from '../lib/waterApi.js'
 import {
   bestStreak,
   currentStreak,
   lastNDays,
   toDateStr,
+  todayStr,
 } from '../lib/streakUtils.js'
 import SectionTabs from '../components/charts/SectionTabs.jsx'
 import ChartCard from '../components/charts/ChartCard.jsx'
@@ -23,11 +27,18 @@ import PRProgressChart from '../components/charts/PRProgressChart.jsx'
 import FrequencyHeatmap from '../components/charts/FrequencyHeatmap.jsx'
 import HabitHeatmap from '../components/charts/HabitHeatmap.jsx'
 import StreakLeaderboard from '../components/charts/StreakLeaderboard.jsx'
+import { getMacroGoals } from '../components/MacrosSummaryCard.jsx'
+import { getWaterGoal } from '../components/WaterTracker.jsx'
 
 const SECTION_OPTIONS = [
   { value: 'gym', label: 'Gym' },
   { value: 'habits', label: 'Habits' },
+  { value: 'fuel', label: 'Fuel' },
 ]
+
+function shortDay(dateStr) {
+  return new Date(dateStr).toLocaleDateString(undefined, { weekday: 'short' })[0]
+}
 
 export default function Stats() {
   const [section, setSection] = useState('gym')
@@ -36,7 +47,9 @@ export default function Stats() {
     <section className="flex flex-col gap-4">
       <h1 className="heading text-3xl">Stats</h1>
       <SectionTabs value={section} onChange={setSection} options={SECTION_OPTIONS} />
-      {section === 'gym' ? <GymStats /> : <HabitsStats />}
+      {section === 'gym' && <GymStats />}
+      {section === 'habits' && <HabitsStats />}
+      {section === 'fuel' && <FuelStats />}
     </section>
   )
 }
@@ -410,6 +423,126 @@ function ExerciseSelect({ value, onChange, exercises }) {
         size={14}
         className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-iron"
       />
+    </div>
+  )
+}
+
+function FuelStats() {
+  const { data: calorySeries = [], isLoading: cLoading } = useDailyCaloriesByWeek(7)
+  const { data: waterSeries = [], isLoading: wLoading } = useWeekWater()
+
+  const goals = getMacroGoals()
+  const waterGoal = getWaterGoal()
+  const today = todayStr()
+
+  const daysWithFood = calorySeries.filter((d) => d.calories > 0)
+  const n = daysWithFood.length
+  const avgCalories = n > 0 ? Math.round(daysWithFood.reduce((s, d) => s + d.calories, 0) / n) : 0
+  const avgProtein  = n > 0 ? Math.round(daysWithFood.reduce((s, d) => s + d.protein, 0) / n) : 0
+  const avgCarbs    = n > 0 ? Math.round(daysWithFood.reduce((s, d) => s + d.carbs, 0) / n) : 0
+  const avgFat      = n > 0 ? Math.round(daysWithFood.reduce((s, d) => s + d.fat, 0) / n) : 0
+
+  const daysWithWater = waterSeries.filter((d) => d.glasses > 0)
+  const avgWater =
+    daysWithWater.length > 0
+      ? +(daysWithWater.reduce((s, d) => s + d.glasses, 0) / daysWithWater.length).toFixed(1)
+      : 0
+
+  if (cLoading || wLoading) return <Loading />
+
+  if (n === 0 && daysWithWater.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-dust/40 bg-ash/40 px-6 py-12 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ash text-brick-red">
+          <UtensilsCrossed size={26} />
+        </div>
+        <div>
+          <h2 className="heading text-lg">No fuel data yet</h2>
+          <p className="mt-1 text-sm text-sand">
+            Log meals and water on the Fuel tab to see your stats here.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <ChartCard title="Calories — last 7 days">
+        <div className="h-44">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={calorySeries} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                tick={{ fill: '#8C8078', fontSize: 10, fontFamily: 'DM Mono' }}
+                tickFormatter={shortDay}
+              />
+              <Bar dataKey="calories" radius={[4, 4, 0, 0]}>
+                {calorySeries.map((d) => (
+                  <Cell key={d.date} fill={d.date === today ? '#E85D3A' : '#C8432B'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <StatPill
+            label="7-day avg"
+            value={avgCalories > 0 ? `${avgCalories.toLocaleString()} kcal` : '—'}
+            accent
+          />
+          <StatPill
+            label="Daily goal"
+            value={goals.calories > 0 ? `${goals.calories.toLocaleString()} kcal` : '—'}
+          />
+        </div>
+      </ChartCard>
+
+      <ChartCard title="Avg macros / day — last 7 days">
+        <div className="grid grid-cols-3 gap-2">
+          <StatPill label="Protein" value={avgProtein > 0 ? `${avgProtein}g` : '—'} accent />
+          <StatPill label="Carbs"   value={avgCarbs > 0 ? `${avgCarbs}g` : '—'} />
+          <StatPill label="Fat"     value={avgFat > 0 ? `${avgFat}g` : '—'} />
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          <StatPill label="Goal P" value={goals.protein > 0 ? `${goals.protein}g` : '—'} />
+          <StatPill label="Goal C" value={goals.carbs > 0 ? `${goals.carbs}g` : '—'} />
+          <StatPill label="Goal F" value={goals.fat > 0 ? `${goals.fat}g` : '—'} />
+        </div>
+      </ChartCard>
+
+      <ChartCard title="Water — last 7 days">
+        <div className="h-32">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={waterSeries} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                tick={{ fill: '#8C8078', fontSize: 10, fontFamily: 'DM Mono' }}
+                tickFormatter={shortDay}
+              />
+              <Bar dataKey="glasses" radius={[4, 4, 0, 0]}>
+                {waterSeries.map((d) => (
+                  <Cell key={d.date} fill={d.date === today ? '#E85D3A' : '#C8432B'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <StatPill
+            label="7-day avg"
+            value={avgWater > 0 ? `${avgWater} glasses` : '—'}
+            accent
+          />
+          <StatPill label="Daily goal" value={`${waterGoal} glasses`} />
+        </div>
+      </ChartCard>
     </div>
   )
 }

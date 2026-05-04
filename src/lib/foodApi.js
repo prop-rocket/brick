@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import { lastNDays, toDateStr } from './streakUtils.js'
 
 export const FOOD_LOGS_KEY = ['food_logs']
 
@@ -56,5 +57,40 @@ export function useDeleteFood() {
       return id
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: FOOD_LOGS_KEY }),
+  })
+}
+
+// Daily calorie + macro totals for the last N days, oldest → newest.
+export function useDailyCaloriesByWeek(n = 7) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: [...FOOD_LOGS_KEY, 'by_day', n],
+    enabled: !!user,
+    queryFn: async () => {
+      const days = lastNDays(n)
+      const oldest = toDateStr(days[0])
+      const { data, error } = await supabase
+        .from('food_logs')
+        .select('logged_at, calories, protein_g, carbs_g, fat_g')
+        .gte('logged_at', oldest + 'T00:00:00')
+        .order('logged_at', { ascending: true })
+      if (error) throw error
+
+      const byDate = new Map()
+      for (const row of data ?? []) {
+        const date = toDateStr(row.logged_at)
+        const acc = byDate.get(date) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 }
+        acc.calories += Number(row.calories) || 0
+        acc.protein  += Number(row.protein_g) || 0
+        acc.carbs    += Number(row.carbs_g) || 0
+        acc.fat      += Number(row.fat_g) || 0
+        byDate.set(date, acc)
+      }
+
+      return days.map((d) => {
+        const date = toDateStr(d)
+        return { date, ...(byDate.get(date) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 }) }
+      })
+    },
   })
 }

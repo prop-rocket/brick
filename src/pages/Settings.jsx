@@ -6,6 +6,11 @@ import { useWeightUnit } from '../context/WeightUnitContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import StepperInput from '../components/StepperInput.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
+import { getMacroGoals } from '../components/MacrosSummaryCard.jsx'
+import { getWaterGoal } from '../components/WaterTracker.jsx'
+
+const MACRO_GOALS_KEY = 'brick_macro_goals'
+const WATER_GOAL_KEY  = 'brick_water_goal_glasses'
 
 const REST_LS_KEY = 'brick_rest_seconds'
 
@@ -29,6 +34,8 @@ export default function Settings() {
 
   const [restSeconds, setRestSecondsState] = useState(getStoredRestSeconds)
   const [weekStart, setWeekStartState] = useState(getWeekStart)
+  const [macroGoals, setMacroGoalsState] = useState(getMacroGoals)
+  const [waterGoal, setWaterGoalState] = useState(getWaterGoal)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -41,6 +48,17 @@ export default function Settings() {
   const handleWeekStart = (v) => {
     setWeekStartState(v)
     try { localStorage.setItem(WEEK_LS_KEY, v) } catch {}
+  }
+
+  const handleMacroGoal = (key, value) => {
+    const updated = { ...macroGoals, [key]: value }
+    setMacroGoalsState(updated)
+    try { localStorage.setItem(MACRO_GOALS_KEY, JSON.stringify(updated)) } catch {}
+  }
+
+  const handleWaterGoal = (value) => {
+    setWaterGoalState(value)
+    try { localStorage.setItem(WATER_GOAL_KEY, String(value)) } catch {}
   }
 
   const handleExport = async () => {
@@ -169,6 +187,60 @@ export default function Settings() {
                 </button>
               ))}
             </div>
+          </SettingsRow>
+        </SettingsSection>
+
+        {/* FUEL GOALS */}
+        <SettingsSection label="Fuel Goals">
+          <SettingsRow label="Calories / day">
+            <StepperInput
+              value={macroGoals.calories}
+              onChange={(v) => handleMacroGoal('calories', v)}
+              step={50}
+              min={500}
+              max={5000}
+              unit="kcal"
+            />
+          </SettingsRow>
+          <SettingsRow label="Protein / day">
+            <StepperInput
+              value={macroGoals.protein}
+              onChange={(v) => handleMacroGoal('protein', v)}
+              step={5}
+              min={0}
+              max={500}
+              unit="g"
+            />
+          </SettingsRow>
+          <SettingsRow label="Carbs / day">
+            <StepperInput
+              value={macroGoals.carbs}
+              onChange={(v) => handleMacroGoal('carbs', v)}
+              step={5}
+              min={0}
+              max={800}
+              unit="g"
+            />
+          </SettingsRow>
+          <SettingsRow label="Fat / day">
+            <StepperInput
+              value={macroGoals.fat}
+              onChange={(v) => handleMacroGoal('fat', v)}
+              step={5}
+              min={0}
+              max={300}
+              unit="g"
+            />
+          </SettingsRow>
+          <SettingsRow label="Water / day">
+            <StepperInput
+              value={waterGoal}
+              onChange={handleWaterGoal}
+              step={1}
+              min={1}
+              max={20}
+              unit="gl"
+            />
           </SettingsRow>
         </SettingsSection>
 
