@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { CalendarCheck2, Repeat, Dumbbell, Activity, BarChart3 } from 'lucide-react'
+import { CalendarCheck2, Repeat, Dumbbell, UtensilsCrossed, Activity, BarChart3 } from 'lucide-react'
 
 const tabs = [
   { to: '/', label: 'Today', icon: CalendarCheck2, end: true },
   { to: '/habits', label: 'Habits', icon: Repeat },
   { to: '/gym', label: 'Gym', icon: Dumbbell },
+  { to: '/fuel', label: 'Fuel', icon: UtensilsCrossed },
   { to: '/body', label: 'Body', icon: Activity },
   { to: '/stats', label: 'Stats', icon: BarChart3 },
 ]
@@ -23,7 +24,7 @@ export default function BottomNav() {
               end={end}
               className={({ isActive }) =>
                 [
-                  'relative flex min-h-tap flex-col items-center justify-center gap-0.5 py-2 px-1 text-[11px]',
+                  'relative flex min-h-tap flex-col items-center justify-center gap-0.5 py-2 px-0.5 text-[10px]',
                   'heading transition-colors active:scale-95',
                   isActive ? 'text-brick-red' : 'text-iron hover:text-sand',
                 ].join(' ')
@@ -31,7 +32,7 @@ export default function BottomNav() {
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={22} strokeWidth={2.25} />
+                  <Icon size={20} strokeWidth={2.25} />
                   <span>{label}</span>
                   {isActive && (
                     <span

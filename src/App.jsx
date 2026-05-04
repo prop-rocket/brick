@@ -6,6 +6,7 @@ import Today from './pages/Today.jsx'
 import Habits from './pages/Habits.jsx'
 import Gym from './pages/Gym.jsx'
 import Body from './pages/Body.jsx'
+import Fuel from './pages/Fuel.jsx'
 import WorkoutLog from './pages/WorkoutLog.jsx'
 import WorkoutSummary from './pages/WorkoutSummary.jsx'
 import PersonalRecords from './pages/PersonalRecords.jsx'
@@ -45,6 +46,7 @@ export default function App() {
         <Route index element={<Today />} />
         <Route path="habits" element={<Habits />} />
         <Route path="gym" element={<Gym />} />
+        <Route path="fuel" element={<Fuel />} />
         <Route path="body" element={<Body />} />
         <Route
           path="stats"
