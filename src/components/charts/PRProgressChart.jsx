@@ -7,12 +7,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
-const TICK_STYLE = {
-  fill: '#8C8078',
-  fontFamily: '"DM Mono", ui-monospace, monospace',
-  fontSize: 11,
-}
+import { useChartColors } from '../../lib/chartColors.js'
+import { getCSSVar } from '../../lib/chartColors.js'
 
 function ProgressTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -30,14 +26,14 @@ function ProgressTooltip({ active, payload, label }) {
   )
 }
 
-// Custom dot to render trophy on PR points
 function PRDot(props) {
   const { cx, cy, payload } = props
   if (cx == null || cy == null) return null
+  const mortar = getCSSVar('--color-mortar')
   if (payload?.isPR) {
     return (
       <g>
-        <circle cx={cx} cy={cy} r={4.5} fill="#E85D3A" stroke="#1C1A18" strokeWidth={2} />
+        <circle cx={cx} cy={cy} r={4.5} fill="#E85D3A" stroke={mortar} strokeWidth={2} />
         <text
           x={cx}
           y={cy - 10}
@@ -50,25 +46,32 @@ function PRDot(props) {
       </g>
     )
   }
-  return <circle cx={cx} cy={cy} r={3} fill="#E85D3A" stroke="#1C1A18" strokeWidth={2} />
+  return <circle cx={cx} cy={cy} r={3} fill="#E85D3A" stroke={mortar} strokeWidth={2} />
 }
 
 export default function PRProgressChart({ data }) {
+  const c = useChartColors()
+  const tickStyle = {
+    fill: c.iron,
+    fontFamily: '"DM Mono", ui-monospace, monospace',
+    fontSize: 11,
+  }
+
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 16, right: 8, bottom: 4, left: -10 }}>
-          <CartesianGrid stroke="#4A4540" strokeOpacity={0.4} vertical={false} />
+          <CartesianGrid stroke={c.dust} strokeOpacity={0.4} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={TICK_STYLE}
-            axisLine={{ stroke: '#4A4540' }}
+            tick={tickStyle}
+            axisLine={{ stroke: c.dust }}
             tickLine={false}
             interval="preserveStartEnd"
             minTickGap={24}
           />
           <YAxis
-            tick={TICK_STYLE}
+            tick={tickStyle}
             axisLine={false}
             tickLine={false}
             width={42}
@@ -76,15 +79,15 @@ export default function PRProgressChart({ data }) {
           />
           <Tooltip
             content={<ProgressTooltip />}
-            cursor={{ stroke: '#4A4540', strokeDasharray: '3 3' }}
+            cursor={{ stroke: c.dust, strokeDasharray: '3 3' }}
           />
           <Line
             type="monotone"
             dataKey="weightKg"
-            stroke="#E85D3A"
+            stroke={c.ember}
             strokeWidth={2.5}
             dot={<PRDot />}
-            activeDot={{ r: 6, fill: '#C8432B', stroke: '#1C1A18', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: c.brickRed, stroke: c.mortar, strokeWidth: 2 }}
             isAnimationActive={false}
           />
         </LineChart>

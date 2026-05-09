@@ -1,3 +1,6 @@
+import { useChartColors } from '../lib/chartColors.js'
+import { usePreference } from '../lib/preferences.js'
+
 const DEFAULT_GOALS = { calories: 2200, protein: 150, carbs: 250, fat: 70 }
 const GOALS_KEY = 'brick_macro_goals'
 
@@ -36,7 +39,8 @@ function MacroBar({ label, current, goal, color }) {
 }
 
 export default function MacrosSummaryCard({ totals }) {
-  const goals = getMacroGoals()
+  const goals = usePreference(GOALS_KEY, DEFAULT_GOALS)
+  const c = useChartColors()
   const calPct = goals.calories > 0
     ? Math.min(100, Math.round((totals.calories / goals.calories) * 100))
     : 0
@@ -69,9 +73,9 @@ export default function MacrosSummaryCard({ totals }) {
       </div>
 
       <div className="grid grid-cols-3 gap-3 pt-1">
-        <MacroBar label="Protein" current={totals.protein} goal={goals.protein} color="#E85D3A" />
-        <MacroBar label="Carbs" current={totals.carbs} goal={goals.carbs} color="#D4C9B8" />
-        <MacroBar label="Fat" current={totals.fat} goal={goals.fat} color="#8C8078" />
+        <MacroBar label="Protein" current={totals.protein} goal={goals.protein} color={c.ember} />
+        <MacroBar label="Carbs"   current={totals.carbs}   goal={goals.carbs}   color={c.sand} />
+        <MacroBar label="Fat"     current={totals.fat}     goal={goals.fat}     color={c.iron} />
       </div>
     </div>
   )

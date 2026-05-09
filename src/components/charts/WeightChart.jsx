@@ -8,12 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
-const TICK_STYLE = {
-  fill: '#8C8078',
-  fontFamily: '"DM Mono", ui-monospace, monospace',
-  fontSize: 11,
-}
+import { useChartColors } from '../../lib/chartColors.js'
 
 function WeightTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -33,21 +28,28 @@ function WeightTooltip({ active, payload, label }) {
 }
 
 export default function WeightChart({ data }) {
+  const c = useChartColors()
+  const tickStyle = {
+    fill: c.iron,
+    fontFamily: '"DM Mono", ui-monospace, monospace',
+    fontSize: 11,
+  }
+
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -10 }}>
-          <CartesianGrid stroke="#4A4540" strokeOpacity={0.4} vertical={false} />
+          <CartesianGrid stroke={c.dust} strokeOpacity={0.4} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={TICK_STYLE}
-            axisLine={{ stroke: '#4A4540' }}
+            tick={tickStyle}
+            axisLine={{ stroke: c.dust }}
             tickLine={false}
             interval="preserveStartEnd"
             minTickGap={20}
           />
           <YAxis
-            tick={TICK_STYLE}
+            tick={tickStyle}
             axisLine={false}
             tickLine={false}
             width={48}
@@ -56,7 +58,7 @@ export default function WeightChart({ data }) {
           />
           <Tooltip
             content={<WeightTooltip />}
-            cursor={{ stroke: '#4A4540', strokeDasharray: '3 3' }}
+            cursor={{ stroke: c.dust, strokeDasharray: '3 3' }}
           />
           <Legend
             verticalAlign="top"
@@ -64,7 +66,7 @@ export default function WeightChart({ data }) {
             wrapperStyle={{
               fontFamily: '"DM Mono", ui-monospace, monospace',
               fontSize: 10,
-              color: '#8C8078',
+              color: c.iron,
               textTransform: 'uppercase',
               letterSpacing: '0.16em',
             }}
@@ -74,10 +76,10 @@ export default function WeightChart({ data }) {
             name="Weight"
             type="monotone"
             dataKey="weight"
-            stroke="#F0EBE3"
+            stroke={c.chalk}
             strokeWidth={2}
-            dot={{ r: 2.5, fill: '#F0EBE3', stroke: '#1C1A18', strokeWidth: 1.5 }}
-            activeDot={{ r: 5, fill: '#F0EBE3', stroke: '#1C1A18', strokeWidth: 2 }}
+            dot={{ r: 2.5, fill: c.chalk, stroke: c.mortar, strokeWidth: 1.5 }}
+            activeDot={{ r: 5, fill: c.chalk, stroke: c.mortar, strokeWidth: 2 }}
             connectNulls
             isAnimationActive={false}
           />
@@ -85,7 +87,7 @@ export default function WeightChart({ data }) {
             name="7-day avg"
             type="monotone"
             dataKey="ma7"
-            stroke="#C8432B"
+            stroke={c.brickRed}
             strokeWidth={2}
             strokeDasharray="4 3"
             dot={false}

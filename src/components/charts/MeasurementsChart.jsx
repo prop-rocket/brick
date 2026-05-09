@@ -8,26 +8,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useChartColors } from '../../lib/chartColors.js'
 
-const TICK_STYLE = {
-  fill: '#8C8078',
-  fontFamily: '"DM Mono", ui-monospace, monospace',
-  fontSize: 11,
-}
-
-const SERIES = [
-  { key: 'chest', label: 'Chest', color: '#F0EBE3' },
-  { key: 'waist', label: 'Waist', color: '#C8432B' },
-  { key: 'hips', label: 'Hips', color: '#E85D3A' },
-]
-
-function MeasurementsTooltip({ active, payload, label }) {
+function MeasurementsTooltip({ active, payload, label, series }) {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg border border-dust/40 bg-mortar px-3 py-2 font-mono text-[11px] text-chalk shadow-xl">
       <p className="uppercase tracking-[0.18em] text-iron">{label}</p>
       <div className="mt-1 flex flex-col gap-0.5">
-        {SERIES.map((s) => {
+        {series.map((s) => {
           const v = payload.find((p) => p.dataKey === s.key)?.value
           if (v == null) return null
           return (
@@ -42,21 +31,34 @@ function MeasurementsTooltip({ active, payload, label }) {
 }
 
 export default function MeasurementsChart({ data }) {
+  const c = useChartColors()
+  const tickStyle = {
+    fill: c.iron,
+    fontFamily: '"DM Mono", ui-monospace, monospace',
+    fontSize: 11,
+  }
+
+  const SERIES = [
+    { key: 'chest', label: 'Chest', color: c.chalk },
+    { key: 'waist', label: 'Waist', color: c.brickRed },
+    { key: 'hips',  label: 'Hips',  color: c.ember },
+  ]
+
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -10 }}>
-          <CartesianGrid stroke="#4A4540" strokeOpacity={0.4} vertical={false} />
+          <CartesianGrid stroke={c.dust} strokeOpacity={0.4} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={TICK_STYLE}
-            axisLine={{ stroke: '#4A4540' }}
+            tick={tickStyle}
+            axisLine={{ stroke: c.dust }}
             tickLine={false}
             interval="preserveStartEnd"
             minTickGap={20}
           />
           <YAxis
-            tick={TICK_STYLE}
+            tick={tickStyle}
             axisLine={false}
             tickLine={false}
             width={48}
@@ -64,8 +66,8 @@ export default function MeasurementsChart({ data }) {
             tickFormatter={(v) => `${Number(v).toFixed(0)}`}
           />
           <Tooltip
-            content={<MeasurementsTooltip />}
-            cursor={{ stroke: '#4A4540', strokeDasharray: '3 3' }}
+            content={<MeasurementsTooltip series={SERIES} />}
+            cursor={{ stroke: c.dust, strokeDasharray: '3 3' }}
           />
           <Legend
             verticalAlign="top"
@@ -73,7 +75,7 @@ export default function MeasurementsChart({ data }) {
             wrapperStyle={{
               fontFamily: '"DM Mono", ui-monospace, monospace',
               fontSize: 10,
-              color: '#8C8078',
+              color: c.iron,
               textTransform: 'uppercase',
               letterSpacing: '0.16em',
             }}
@@ -87,8 +89,8 @@ export default function MeasurementsChart({ data }) {
               dataKey={s.key}
               stroke={s.color}
               strokeWidth={2}
-              dot={{ r: 2.5, fill: s.color, stroke: '#1C1A18', strokeWidth: 1.5 }}
-              activeDot={{ r: 5, fill: s.color, stroke: '#1C1A18', strokeWidth: 2 }}
+              dot={{ r: 2.5, fill: s.color, stroke: c.mortar, strokeWidth: 1.5 }}
+              activeDot={{ r: 5, fill: s.color, stroke: c.mortar, strokeWidth: 2 }}
               connectNulls
               isAnimationActive={false}
             />
