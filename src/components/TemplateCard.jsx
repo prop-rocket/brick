@@ -1,12 +1,15 @@
 import { Play, Trash2 } from 'lucide-react'
 
 const MUSCLE_STYLES = {
-  Push:   { bg: '#C8432B', text: '#F0EBE3' },
-  Pull:   { bg: '#E85D3A', text: '#F0EBE3' },
-  Legs:   { bg: '#8C8078', text: '#F0EBE3' },
-  Core:   { bg: '#D4C9B8', text: '#1C1A18' },
-  Cardio: { bg: '#4A4540', text: '#F0EBE3' },
-  Custom: { bg: '#F0EBE3', text: '#1C1A18' },
+  Chest:     { bg: '#C8432B', text: '#F0EBE3' },
+  Shoulders: { bg: '#D4724A', text: '#F0EBE3' },
+  Back:      { bg: '#6B5A52', text: '#F0EBE3' },
+  Arms:      { bg: '#8C7060', text: '#F0EBE3' },
+  Legs:      { bg: '#8C8078', text: '#F0EBE3' },
+  Glutes:    { bg: '#B08070', text: '#F0EBE3' },
+  Core:      { bg: '#D4C9B8', text: '#1C1A18' },
+  Cardio:    { bg: '#4A4540', text: '#F0EBE3' },
+  Custom:    { bg: '#F0EBE3', text: '#1C1A18' },
 }
 
 export default function TemplateCard({ template, onStart, onDelete, starting }) {

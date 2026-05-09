@@ -3,7 +3,7 @@ import { Search, X, ChevronUp, ChevronDown, Plus, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet.jsx'
 import { useExercises, useCreateCustomExercise, useCreateTemplate } from '../lib/gymApi.js'
 
-const GROUPS = ['Push', 'Pull', 'Legs', 'Core', 'Cardio', 'Custom']
+const GROUPS = ['Chest', 'Shoulders', 'Back', 'Arms', 'Legs', 'Glutes', 'Core', 'Cardio', 'Custom']
 
 export default function TemplateBuilderSheet({ open, onClose }) {
   const [name, setName] = useState('')
