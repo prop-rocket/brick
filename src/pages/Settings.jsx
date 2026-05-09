@@ -53,23 +53,35 @@ export default function Settings() {
   const handleMacroGoal = (key, value) => {
     const updated = { ...macroGoals, [key]: value }
     setMacroGoalsState(updated)
-    try { localStorage.setItem(MACRO_GOALS_KEY, JSON.stringify(updated)) } catch {}
+    const newValue = JSON.stringify(updated)
+    try {
+      localStorage.setItem(MACRO_GOALS_KEY, newValue)
+      window.dispatchEvent(new StorageEvent('storage', { key: MACRO_GOALS_KEY, newValue, storageArea: localStorage }))
+    } catch {}
   }
 
   const handleWaterGoal = (value) => {
     setWaterGoalState(value)
-    try { localStorage.setItem(WATER_GOAL_KEY, String(value)) } catch {}
+    const newValue = String(value)
+    try {
+      localStorage.setItem(WATER_GOAL_KEY, newValue)
+      window.dispatchEvent(new StorageEvent('storage', { key: WATER_GOAL_KEY, newValue, storageArea: localStorage }))
+    } catch {}
   }
 
   const handleExport = async () => {
     setExporting(true)
     try {
-      const [habits, habitLogs, workouts, workoutSets, bodyLogs] = await Promise.all([
+      const [habits, habitLogs, workouts, workoutSets, bodyLogs, foodLogs, waterLogs, templates, exercises] = await Promise.all([
         supabase.from('habits').select('*'),
         supabase.from('habit_logs').select('*'),
         supabase.from('workouts').select('*'),
         supabase.from('workout_sets').select('*'),
         supabase.from('body_logs').select('*'),
+        supabase.from('food_logs').select('*'),
+        supabase.from('water_logs').select('*'),
+        supabase.from('workout_templates').select('*').eq('is_preset', false),
+        supabase.from('exercises').select('*').eq('is_custom', true),
       ])
       const payload = {
         exported_at: new Date().toISOString(),
@@ -78,6 +90,10 @@ export default function Settings() {
         workouts: workouts.data ?? [],
         workout_sets: workoutSets.data ?? [],
         body_logs: bodyLogs.data ?? [],
+        food_logs: foodLogs.data ?? [],
+        water_logs: waterLogs.data ?? [],
+        workout_templates: templates.data ?? [],
+        custom_exercises: exercises.data ?? [],
       }
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -105,6 +121,8 @@ export default function Settings() {
       await supabase.from('habit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       await supabase.from('habits').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       await supabase.from('body_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      await supabase.from('food_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      await supabase.from('water_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       await signOut()
     } catch (e) {
       console.error('Delete account failed', e)

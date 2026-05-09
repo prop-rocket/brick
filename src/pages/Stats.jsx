@@ -29,6 +29,8 @@ import HabitHeatmap from '../components/charts/HabitHeatmap.jsx'
 import StreakLeaderboard from '../components/charts/StreakLeaderboard.jsx'
 import { getMacroGoals } from '../components/MacrosSummaryCard.jsx'
 import { getWaterGoal } from '../components/WaterTracker.jsx'
+import { useChartColors } from '../lib/chartColors.js'
+import { usePreference } from '../lib/preferences.js'
 
 const SECTION_OPTIONS = [
   { value: 'gym', label: 'Gym' },
@@ -427,12 +429,17 @@ function ExerciseSelect({ value, onChange, exercises }) {
   )
 }
 
+const MACRO_GOALS_KEY = 'brick_macro_goals'
+const MACRO_DEFAULT = { calories: 2200, protein: 150, carbs: 250, fat: 70 }
+const WATER_GOAL_KEY = 'brick_water_goal_glasses'
+
 function FuelStats() {
   const { data: calorySeries = [], isLoading: cLoading } = useDailyCaloriesByWeek(7)
   const { data: waterSeries = [], isLoading: wLoading } = useWeekWater()
+  const c = useChartColors()
 
-  const goals = getMacroGoals()
-  const waterGoal = getWaterGoal()
+  const goals = usePreference(MACRO_GOALS_KEY, MACRO_DEFAULT)
+  const waterGoal = usePreference(WATER_GOAL_KEY, 8)
   const today = todayStr()
 
   const daysWithFood = calorySeries.filter((d) => d.calories > 0)
@@ -477,12 +484,12 @@ function FuelStats() {
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                tick={{ fill: '#8C8078', fontSize: 10, fontFamily: 'DM Mono' }}
+                tick={{ fill: c.iron, fontSize: 10, fontFamily: 'DM Mono' }}
                 tickFormatter={shortDay}
               />
               <Bar dataKey="calories" radius={[4, 4, 0, 0]}>
                 {calorySeries.map((d) => (
-                  <Cell key={d.date} fill={d.date === today ? '#E85D3A' : '#C8432B'} />
+                  <Cell key={d.date} fill={d.date === today ? c.ember : c.brickRed} />
                 ))}
               </Bar>
             </BarChart>
@@ -523,12 +530,12 @@ function FuelStats() {
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                tick={{ fill: '#8C8078', fontSize: 10, fontFamily: 'DM Mono' }}
+                tick={{ fill: c.iron, fontSize: 10, fontFamily: 'DM Mono' }}
                 tickFormatter={shortDay}
               />
               <Bar dataKey="glasses" radius={[4, 4, 0, 0]}>
                 {waterSeries.map((d) => (
-                  <Cell key={d.date} fill={d.date === today ? '#E85D3A' : '#C8432B'} />
+                  <Cell key={d.date} fill={d.date === today ? c.ember : c.brickRed} />
                 ))}
               </Bar>
             </BarChart>

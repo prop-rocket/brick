@@ -3,6 +3,8 @@ import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts'
 import { useTodayWater, useSetWaterGlasses, useWeekWater } from '../lib/waterApi.js'
 import { todayStr } from '../lib/streakUtils.js'
 import ChartCard from './charts/ChartCard.jsx'
+import { useChartColors } from '../lib/chartColors.js'
+import { usePreference } from '../lib/preferences.js'
 
 const ML_PER_GLASS = 250
 const GOAL_LS_KEY = 'brick_water_goal_glasses'
@@ -54,10 +56,11 @@ function ProgressRing({ pct }) {
 }
 
 export default function WaterTracker() {
-  const goal = getWaterGoal()
+  const goal = usePreference(GOAL_LS_KEY, DEFAULT_GOAL)
   const { data: today, isLoading } = useTodayWater()
   const { data: week = [] } = useWeekWater()
   const setGlasses = useSetWaterGlasses()
+  const colors = useChartColors()
 
   const glasses = today?.glasses ?? 0
   const ml = glasses * ML_PER_GLASS
@@ -128,14 +131,14 @@ export default function WaterTracker() {
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                tick={{ fill: '#8C8078', fontSize: 10, fontFamily: 'DM Mono' }}
+                tick={{ fill: colors.iron, fontSize: 10, fontFamily: 'DM Mono' }}
                 tickFormatter={shortDay}
               />
               <Bar dataKey="glasses" radius={[4, 4, 0, 0]}>
                 {week.map((d) => (
                   <Cell
                     key={d.date}
-                    fill={d.date === today_str ? '#E85D3A' : '#C8432B'}
+                    fill={d.date === today_str ? colors.ember : colors.brickRed}
                   />
                 ))}
               </Bar>

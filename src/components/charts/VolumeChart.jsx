@@ -7,12 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
-const TICK_STYLE = {
-  fill: '#8C8078',
-  fontFamily: '"DM Mono", ui-monospace, monospace',
-  fontSize: 11,
-}
+import { useChartColors } from '../../lib/chartColors.js'
 
 function VolumeTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -28,21 +23,28 @@ function VolumeTooltip({ active, payload, label }) {
 }
 
 export default function VolumeChart({ data }) {
+  const c = useChartColors()
+  const tickStyle = {
+    fill: c.iron,
+    fontFamily: '"DM Mono", ui-monospace, monospace',
+    fontSize: 11,
+  }
+
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -10 }}>
-          <CartesianGrid stroke="#4A4540" strokeOpacity={0.4} vertical={false} />
+          <CartesianGrid stroke={c.dust} strokeOpacity={0.4} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={TICK_STYLE}
-            axisLine={{ stroke: '#4A4540' }}
+            tick={tickStyle}
+            axisLine={{ stroke: c.dust }}
             tickLine={false}
             interval="preserveStartEnd"
             minTickGap={20}
           />
           <YAxis
-            tick={TICK_STYLE}
+            tick={tickStyle}
             axisLine={false}
             tickLine={false}
             width={48}
@@ -52,15 +54,15 @@ export default function VolumeChart({ data }) {
           />
           <Tooltip
             content={<VolumeTooltip />}
-            cursor={{ stroke: '#4A4540', strokeDasharray: '3 3' }}
+            cursor={{ stroke: c.dust, strokeDasharray: '3 3' }}
           />
           <Line
             type="monotone"
             dataKey="volume"
-            stroke="#C8432B"
+            stroke={c.brickRed}
             strokeWidth={2.5}
-            dot={{ r: 3, fill: '#C8432B', stroke: '#1C1A18', strokeWidth: 2 }}
-            activeDot={{ r: 5, fill: '#E85D3A', stroke: '#1C1A18', strokeWidth: 2 }}
+            dot={{ r: 3, fill: c.brickRed, stroke: c.mortar, strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: c.ember, stroke: c.mortar, strokeWidth: 2 }}
             isAnimationActive={false}
           />
         </LineChart>
