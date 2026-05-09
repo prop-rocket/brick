@@ -56,7 +56,21 @@ export default function LogFoodSheet({ open, onClose }) {
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Log Meal">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Log Meal"
+      footer={
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={create.isPending || !name.trim()}
+          className="heading min-h-tap w-full rounded-xl bg-brick-red text-base text-chalk hover:bg-ember disabled:opacity-50"
+        >
+          {create.isPending ? 'Saving…' : 'Save'}
+        </button>
+      }
+    >
       <div className="flex flex-col gap-5">
         <Field label="What did you eat?">
           <input
@@ -106,14 +120,6 @@ export default function LogFoodSheet({ open, onClose }) {
           </Field>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={create.isPending || !name.trim()}
-          className="heading min-h-tap w-full rounded-xl bg-brick-red text-base text-chalk hover:bg-ember disabled:opacity-50"
-        >
-          {create.isPending ? 'Saving…' : 'Save'}
-        </button>
       </div>
     </BottomSheet>
   )

@@ -101,8 +101,28 @@ export default function TemplateBuilderSheet({ open, onClose }) {
 
   const submitting = createTemplate.isPending || createCustom.isPending
 
+  const footerButtons = (
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={handleClose}
+        className="heading min-h-tap flex-1 rounded-lg border border-dust/50 bg-transparent px-4 text-base text-chalk hover:bg-dust/30"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={submitting}
+        className="heading min-h-tap flex-[1.5] rounded-lg bg-brick-red px-4 text-base text-chalk hover:bg-ember disabled:opacity-60"
+      >
+        {submitting ? 'Saving…' : 'Save Template'}
+      </button>
+    </div>
+  )
+
   return (
-    <BottomSheet open={open} onClose={handleClose} title="New Template">
+    <BottomSheet open={open} onClose={handleClose} title="New Template" footer={footerButtons}>
       <div className="flex flex-col gap-4">
 
         {/* Template name */}
@@ -282,23 +302,6 @@ export default function TemplateBuilderSheet({ open, onClose }) {
           </p>
         )}
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="heading min-h-tap flex-1 rounded-lg border border-dust/50 bg-transparent px-4 text-base text-chalk hover:bg-dust/30"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={submitting}
-            className="heading min-h-tap flex-[1.5] rounded-lg bg-brick-red px-4 text-base text-chalk hover:bg-ember disabled:opacity-60"
-          >
-            {submitting ? 'Saving…' : 'Save Template'}
-          </button>
-        </div>
       </div>
     </BottomSheet>
   )

@@ -37,7 +37,21 @@ export default function LogMeasurementsSheet({ open, onClose, initial }) {
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Log Measurements">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Log Measurements"
+      footer={
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={upsert.isPending}
+          className="heading min-h-tap w-full rounded-xl bg-brick-red text-base text-chalk hover:bg-ember disabled:opacity-50"
+        >
+          {upsert.isPending ? 'Saving…' : 'Save'}
+        </button>
+      }
+    >
       <div className="flex flex-col gap-5">
         <Field label="Date">
           <input
@@ -84,15 +98,6 @@ export default function LogMeasurementsSheet({ open, onClose, initial }) {
             className="w-full"
           />
         </Field>
-
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={upsert.isPending}
-          className="heading min-h-tap w-full rounded-xl bg-brick-red text-base text-chalk hover:bg-ember disabled:opacity-50"
-        >
-          {upsert.isPending ? 'Saving…' : 'Save'}
-        </button>
       </div>
     </BottomSheet>
   )

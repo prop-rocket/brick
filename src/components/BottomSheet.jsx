@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
-export default function BottomSheet({ open, onClose, title, children }) {
+export default function BottomSheet({ open, onClose, title, children, footer }) {
   const [mounted, setMounted] = useState(open)
   const [visible, setVisible] = useState(false)
 
@@ -43,12 +43,13 @@ export default function BottomSheet({ open, onClose, title, children }) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-2xl border-t border-dust/40 bg-ash text-chalk shadow-2xl transition-transform duration-300 ease-out pb-safe ${
+        className={`absolute inset-x-0 bottom-0 flex max-h-[90vh] flex-col rounded-t-2xl border-t border-dust/40 bg-ash text-chalk shadow-2xl transition-transform duration-300 ease-out ${
           visible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="mx-auto flex w-full max-w-xl flex-col">
-          <div className="flex items-center justify-between border-b border-dust/30 px-5 py-4">
+        <div className="mx-auto flex w-full max-w-xl min-h-0 flex-1 flex-col">
+          {/* Sticky header */}
+          <div className="shrink-0 flex items-center justify-between border-b border-dust/30 px-5 py-4">
             <h2 className="heading text-xl">{title}</h2>
             <button
               type="button"
@@ -59,7 +60,14 @@ export default function BottomSheet({ open, onClose, title, children }) {
               <X size={22} />
             </button>
           </div>
-          <div className="px-5 py-5">{children}</div>
+          {/* Scrollable content */}
+          <div className="overflow-y-auto flex-1 min-h-0 px-5 py-5">{children}</div>
+          {/* Pinned footer (action buttons) */}
+          {footer && (
+            <div className="shrink-0 border-t border-dust/20 bg-ash px-5 py-4 pb-safe">
+              {footer}
+            </div>
+          )}
         </div>
       </div>
     </div>
