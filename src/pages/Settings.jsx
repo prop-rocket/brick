@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronRight, Download, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useWeightUnit } from '../context/WeightUnitContext.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import StepperInput from '../components/StepperInput.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
@@ -31,6 +32,7 @@ export default function Settings() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const { unit, setUnit } = useWeightUnit()
+  const { showError } = useToast()
 
   const [restSeconds, setRestSecondsState] = useState(getStoredRestSeconds)
   const [weekStart, setWeekStartState] = useState(getWeekStart)
@@ -104,6 +106,7 @@ export default function Settings() {
       URL.revokeObjectURL(url)
     } catch (e) {
       console.error('Export failed', e)
+      showError('Export failed. Try again.')
     } finally {
       setExporting(false)
     }
@@ -126,6 +129,7 @@ export default function Settings() {
       await signOut()
     } catch (e) {
       console.error('Delete account failed', e)
+      showError('Could not delete account. Try again.')
       setDeleting(false)
     }
   }

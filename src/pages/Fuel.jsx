@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, UtensilsCrossed } from 'lucide-react'
 import { useFoodLogs, useDeleteFood } from '../lib/foodApi.js'
 import { todayStr, toDateStr } from '../lib/streakUtils.js'
+import { useToast } from '../context/ToastContext.jsx'
 import SectionTabs from '../components/charts/SectionTabs.jsx'
 import LogFoodSheet from '../components/LogFoodSheet.jsx'
 import FoodLogRow from '../components/FoodLogRow.jsx'
@@ -29,6 +30,7 @@ export default function Fuel() {
 function FoodView() {
   const { data: logs = [], isLoading } = useFoodLogs()
   const deleteFood = useDeleteFood()
+  const { showError } = useToast()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
 
@@ -58,6 +60,7 @@ function FoodView() {
       await deleteFood.mutateAsync(id)
     } catch (e) {
       console.error('Failed to delete', e)
+      showError('Could not delete meal. Try again.')
     }
   }
 

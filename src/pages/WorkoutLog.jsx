@@ -10,6 +10,7 @@ import {
 } from '../lib/gymApi.js'
 import { checkIsPR } from '../lib/statsApi.js'
 import { getStoredRestSeconds } from './Settings.jsx'
+import { useToast } from '../context/ToastContext.jsx'
 import ExerciseLogCard from '../components/ExerciseLogCard.jsx'
 import RestTimer from '../components/RestTimer.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
@@ -41,6 +42,7 @@ export default function WorkoutLog() {
 
   const logSet = useLogSet()
   const finishWorkout = useFinishWorkout()
+  const { showError } = useToast()
 
   // Elapsed timer
   const [elapsed, setElapsed] = useState(0)
@@ -147,6 +149,7 @@ export default function WorkoutLog() {
       startRest()
     } catch (e) {
       console.error('Failed to log set', e)
+      showError('Could not save set. Try again.')
     }
   }
 
@@ -160,6 +163,7 @@ export default function WorkoutLog() {
       navigate(`/gym/summary/${workoutId}`, { replace: true })
     } catch (e) {
       console.error('Failed to finish workout', e)
+      showError('Could not finish workout. Try again.')
     }
   }
 

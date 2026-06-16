@@ -7,6 +7,7 @@ import {
   useDeleteTemplate,
   useWorkoutHistory,
 } from '../lib/gymApi.js'
+import { useToast } from '../context/ToastContext.jsx'
 import TemplateCard from '../components/TemplateCard.jsx'
 import WorkoutHistoryCard from '../components/WorkoutHistoryCard.jsx'
 import TemplateBuilderSheet from '../components/TemplateBuilderSheet.jsx'
@@ -19,6 +20,7 @@ export default function Gym() {
   const startWorkout = useStartWorkout()
   const deleteTemplate = useDeleteTemplate()
 
+  const { showError } = useToast()
   const [builderOpen, setBuilderOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [startingId, setStartingId] = useState(null)
@@ -34,6 +36,7 @@ export default function Gym() {
       navigate(`/gym/log/${workout.id}`)
     } catch (e) {
       console.error('Failed to start workout', e)
+      showError('Could not start workout. Try again.')
       setStartingId(null)
     }
   }
@@ -42,7 +45,12 @@ export default function Gym() {
     if (!pendingDelete) return
     const id = pendingDelete.id
     setPendingDelete(null)
-    await deleteTemplate.mutateAsync(id)
+    try {
+      await deleteTemplate.mutateAsync(id)
+    } catch (e) {
+      console.error('Failed to delete template', e)
+      showError('Could not delete template. Try again.')
+    }
   }
 
   return (

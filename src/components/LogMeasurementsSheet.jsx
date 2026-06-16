@@ -3,6 +3,7 @@ import BottomSheet from './BottomSheet.jsx'
 import StepperInput from './StepperInput.jsx'
 import { useUpsertBodyLog } from '../lib/bodyApi.js'
 import { todayStr } from '../lib/streakUtils.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 const DEFAULTS = { chest_cm: 95, waist_cm: 80, hips_cm: 95 }
 
@@ -12,6 +13,7 @@ export default function LogMeasurementsSheet({ open, onClose, initial }) {
   const [waist, setWaist] = useState(DEFAULTS.waist_cm)
   const [hips, setHips] = useState(DEFAULTS.hips_cm)
   const upsert = useUpsertBodyLog()
+  const { showError } = useToast()
 
   useEffect(() => {
     if (open) {
@@ -33,6 +35,7 @@ export default function LogMeasurementsSheet({ open, onClose, initial }) {
       onClose?.()
     } catch (e) {
       console.error('Failed to log measurements', e)
+      showError('Could not save measurements. Try again.')
     }
   }
 

@@ -3,6 +3,19 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthFrame from '../components/AuthFrame.jsx'
 
+function sanitizeSignUpError(err) {
+  const msg = err?.message?.toLowerCase() ?? ''
+  if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('unique')) {
+    return 'An account with this email already exists.'
+  }
+  if (msg.includes('password') && (msg.includes('weak') || msg.includes('short'))) {
+    return 'Password is too weak. Use at least 6 characters.'
+  }
+  if (msg.includes('too many') || msg.includes('rate limit')) return 'Too many attempts. Try again later.'
+  if (msg.includes('network') || msg.includes('fetch')) return 'Network error. Check your connection.'
+  return 'Could not create account. Try again.'
+}
+
 export default function SignUp() {
   const { signUp, session, loading } = useAuth()
   const navigate = useNavigate()
@@ -22,7 +35,7 @@ export default function SignUp() {
     const { data, error: signUpError } = await signUp(email, password)
     setSubmitting(false)
     if (signUpError) {
-      setError(signUpError.message)
+      setError(sanitizeSignUpError(signUpError))
       return
     }
     if (data.session) {

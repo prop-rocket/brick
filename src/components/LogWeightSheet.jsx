@@ -3,11 +3,13 @@ import BottomSheet from './BottomSheet.jsx'
 import StepperInput from './StepperInput.jsx'
 import { useUpsertBodyLog } from '../lib/bodyApi.js'
 import { todayStr } from '../lib/streakUtils.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 export default function LogWeightSheet({ open, onClose, initialWeight = 75 }) {
   const [date, setDate] = useState(todayStr())
   const [weight, setWeight] = useState(initialWeight)
   const upsert = useUpsertBodyLog()
+  const { showError } = useToast()
 
   useEffect(() => {
     if (open) {
@@ -23,6 +25,7 @@ export default function LogWeightSheet({ open, onClose, initialWeight = 75 }) {
       onClose?.()
     } catch (e) {
       console.error('Failed to log weight', e)
+      showError('Could not save weight. Try again.')
     }
   }
 

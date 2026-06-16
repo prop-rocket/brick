@@ -3,6 +3,16 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthFrame from '../components/AuthFrame.jsx'
 
+function sanitizeSignInError(err) {
+  const msg = err?.message?.toLowerCase() ?? ''
+  if (msg.includes('invalid') || msg.includes('not found') || msg.includes('credentials')) {
+    return 'Invalid email or password.'
+  }
+  if (msg.includes('too many') || msg.includes('rate limit')) return 'Too many attempts. Try again later.'
+  if (msg.includes('network') || msg.includes('fetch')) return 'Network error. Check your connection.'
+  return 'Sign in failed. Try again.'
+}
+
 export default function Login() {
   const { signIn, session, loading } = useAuth()
   const navigate = useNavigate()
@@ -20,7 +30,7 @@ export default function Login() {
     const { error: signInError } = await signIn(email, password)
     setSubmitting(false)
     if (signInError) {
-      setError(signInError.message)
+      setError(sanitizeSignInError(signInError))
       return
     }
     navigate('/', { replace: true })
@@ -78,6 +88,12 @@ export default function Login() {
           New here?{' '}
           <Link to="/signup" className="text-brick-red hover:text-ember">
             Create an account
+          </Link>
+        </p>
+
+        <p className="text-center text-sm">
+          <Link to="/forgot-password" className="text-iron hover:text-sand">
+            Forgot password?
           </Link>
         </p>
       </form>

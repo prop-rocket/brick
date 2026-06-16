@@ -22,6 +22,15 @@ jobs:
 
       - run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Security audit
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Test
+        run: npm test
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 

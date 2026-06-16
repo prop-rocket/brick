@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import BottomSheet from './BottomSheet.jsx'
 import StepperInput from './StepperInput.jsx'
 import { useCreateFood } from '../lib/foodApi.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 const MEAL_TYPES = [
   { value: 'breakfast', label: 'Breakfast' },
@@ -26,6 +27,7 @@ export default function LogFoodSheet({ open, onClose }) {
   const [carbs, setCarbs] = useState(0)
   const [fat, setFat] = useState(0)
   const create = useCreateFood()
+  const { showError } = useToast()
 
   useEffect(() => {
     if (open) {
@@ -52,6 +54,7 @@ export default function LogFoodSheet({ open, onClose }) {
       onClose?.()
     } catch (e) {
       console.error('Failed to log food', e)
+      showError('Could not save meal. Try again.')
     }
   }
 
