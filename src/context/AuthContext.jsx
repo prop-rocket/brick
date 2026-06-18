@@ -31,11 +31,14 @@ export function AuthProvider({ children }) {
   const signIn = (email, password) =>
     supabase.auth.signInWithPassword({ email, password })
 
-  const signUp = (email, password) =>
+  const signUp = (email, password, metadata = {}) =>
     supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: {
+        data: metadata,
+        emailRedirectTo: `${window.location.origin}/`,
+      },
     })
 
   const signOut = () => supabase.auth.signOut()

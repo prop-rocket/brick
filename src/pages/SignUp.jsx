@@ -17,12 +17,14 @@ function sanitizeSignUpError(err) {
 }
 
 export default function SignUp() {
-  const { signUp, session, loading } = useAuth()
+  const { signUp, signOut, session, loading } = useAuth()
   const navigate = useNavigate()
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [error, setError] = useState(null)
-  const [info, setInfo] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && session) return <Navigate to="/" replace />
@@ -30,25 +32,76 @@ export default function SignUp() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    setInfo(null)
+
+    if (!name.trim()) {
+      setError('Please enter your name.')
+      return
+    }
+    if (!phone.trim()) {
+      setError('Please enter your phone number.')
+      return
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (password !== confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+
     setSubmitting(true)
-    const { data, error: signUpError } = await signUp(email, password)
-    setSubmitting(false)
+    const { error: signUpError } = await signUp(email, password, {
+      name: name.trim(),
+      phone: phone.trim(),
+    })
+
     if (signUpError) {
+      setSubmitting(false)
       setError(sanitizeSignUpError(signUpError))
       return
     }
-    if (data.session) {
-      navigate('/', { replace: true })
-    } else {
-      setInfo('Check your email to confirm your account, then sign in.')
-    }
+
+    // With email confirmation off, Supabase auto-creates a session. Clear it so
+    // the user lands on a clean login page and signs in with their new credentials.
+    await signOut()
+    setSubmitting(false)
+    navigate('/login', { replace: true, state: { signedUp: true } })
   }
 
   return (
     <AuthFrame>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <h2 className="heading text-2xl">Create account</h2>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
+            Name
+          </span>
+          <input
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="min-h-tap rounded-lg border border-dust/40 bg-ash px-3 text-chalk placeholder-iron outline-none focus:border-brick-red"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
+            Phone Number
+          </span>
+          <input
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+1 555 000 1234"
+            className="min-h-tap rounded-lg border border-dust/40 bg-ash px-3 text-chalk placeholder-iron outline-none focus:border-brick-red"
+          />
+        </label>
 
         <label className="flex flex-col gap-1">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
@@ -66,7 +119,7 @@ export default function SignUp() {
 
         <label className="flex flex-col gap-1">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
-            Password
+            Set Password
           </span>
           <input
             type="password"
@@ -82,14 +135,24 @@ export default function SignUp() {
           </span>
         </label>
 
+        <label className="flex flex-col gap-1">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
+            Confirm Password
+          </span>
+          <input
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={6}
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="min-h-tap rounded-lg border border-dust/40 bg-ash px-3 text-chalk placeholder-iron outline-none focus:border-brick-red"
+          />
+        </label>
+
         {error && (
           <p className="rounded-md border border-brick-red/40 bg-brick-red/10 px-3 py-2 text-sm text-brick-red">
             {error}
-          </p>
-        )}
-        {info && (
-          <p className="rounded-md border border-ember/40 bg-ember/10 px-3 py-2 text-sm text-ember">
-            {info}
           </p>
         )}
 

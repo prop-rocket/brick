@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthFrame from '../components/AuthFrame.jsx'
 
@@ -16,10 +16,12 @@ function sanitizeSignInError(err) {
 export default function Login() {
   const { signIn, session, loading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const signedUp = location.state?.signedUp === true
 
   if (!loading && session) return <Navigate to="/" replace />
 
@@ -40,6 +42,12 @@ export default function Login() {
     <AuthFrame>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <h2 className="heading text-2xl">Sign in</h2>
+
+        {signedUp && (
+          <p className="rounded-md border border-ember/40 bg-ember/10 px-3 py-2 text-sm text-ember">
+            Account created. Sign in with your new credentials.
+          </p>
+        )}
 
         <label className="flex flex-col gap-1">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-iron">
