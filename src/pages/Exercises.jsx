@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Search, X, Pencil, Trash2, Dumbbell } from 'lucide-react'
 import { useExercises, useDeleteExercise } from '../lib/gymApi.js'
 import { useToast } from '../context/ToastContext.jsx'
-import { GROUPS, GROUP_FILTERS } from '../lib/muscleGroups.js'
+import { GROUPS, GROUP_FILTERS, MUSCLE_STYLES, FALLBACK_STYLE } from '../lib/muscleGroups.js'
 import ExerciseFormSheet from '../components/ExerciseFormSheet.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
@@ -134,11 +134,15 @@ export default function Exercises() {
             {GROUPS.map((group) => {
               const items = grouped[group]
               if (!items?.length) return null
+              const style = MUSCLE_STYLES[group] ?? FALLBACK_STYLE
               return (
                 <div key={group} className="flex flex-col gap-1.5">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-iron">
+                  <span
+                    className="self-start rounded-full px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.2em]"
+                    style={{ backgroundColor: style.bg, color: style.text }}
+                  >
                     {group}
-                  </p>
+                  </span>
                   <ul className="flex flex-col gap-1.5">
                     {items.map((ex) => (
                       <li

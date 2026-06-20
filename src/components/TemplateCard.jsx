@@ -1,16 +1,5 @@
 import { Play, Trash2 } from 'lucide-react'
-
-const MUSCLE_STYLES = {
-  Chest:     { bg: '#C8432B', text: '#F0EBE3' },
-  Shoulders: { bg: '#D4724A', text: '#F0EBE3' },
-  Back:      { bg: '#6B5A52', text: '#F0EBE3' },
-  Arms:      { bg: '#8C7060', text: '#F0EBE3' },
-  Legs:      { bg: '#8C8078', text: '#F0EBE3' },
-  Glutes:    { bg: '#B08070', text: '#F0EBE3' },
-  Core:      { bg: '#D4C9B8', text: '#1C1A18' },
-  Cardio:    { bg: '#4A4540', text: '#F0EBE3' },
-  Custom:    { bg: '#F0EBE3', text: '#1C1A18' },
-}
+import { MUSCLE_STYLES, FALLBACK_STYLE } from '../lib/muscleGroups.js'
 
 export default function TemplateCard({ template, onStart, onDelete, starting }) {
   const exercises = template.exercises ?? []
@@ -44,7 +33,7 @@ export default function TemplateCard({ template, onStart, onDelete, starting }) 
           {preview.map((te) => {
             const name = te.exercises?.name ?? te.name ?? '—'
             const group = te.exercises?.muscle_group ?? te.muscle_group
-            const style = MUSCLE_STYLES[group] ?? { bg: '#8C8078', text: '#F0EBE3' }
+            const style = MUSCLE_STYLES[group] ?? FALLBACK_STYLE
             return (
               <span
                 key={te.exercise_id ?? te.id}
