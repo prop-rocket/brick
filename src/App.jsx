@@ -12,6 +12,7 @@ import Fuel from './pages/Fuel.jsx'
 import WorkoutLog from './pages/WorkoutLog.jsx'
 import WorkoutSummary from './pages/WorkoutSummary.jsx'
 import PersonalRecords from './pages/PersonalRecords.jsx'
+import Exercises from './pages/Exercises.jsx'
 import Settings from './pages/Settings.jsx'
 import AppShell from './components/AppShell.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
@@ -84,6 +85,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <PersonalRecords />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gym/exercises"
+        element={
+          <ProtectedRoute>
+            <Exercises />
           </ProtectedRoute>
         }
       />

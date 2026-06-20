@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import {
   useWorkout,
   useTemplateExercises,
   useWorkoutSets,
   useLogSet,
   useFinishWorkout,
+  useExercises,
 } from '../lib/gymApi.js'
 import { checkIsPR } from '../lib/statsApi.js'
+import { mergeWorkoutExercises } from '../lib/workoutExercises.js'
 import { getStoredRestSeconds } from './Settings.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import ExerciseLogCard from '../components/ExerciseLogCard.jsx'
 import RestTimer from '../components/RestTimer.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import PRFlashOverlay from '../components/PRFlashOverlay.jsx'
+import ExercisePickerSheet from '../components/ExercisePickerSheet.jsx'
 
 const DEFAULT_REPS = 8
 const DEFAULT_WEIGHT = 60
@@ -40,9 +43,40 @@ export default function WorkoutLog() {
   const setsQuery = useWorkoutSets(workoutId)
   const allSets = setsQuery.data ?? []
 
+  const exercisesQuery = useExercises()
+  const allExercises = exercisesQuery.data ?? []
+
   const logSet = useLogSet()
   const finishWorkout = useFinishWorkout()
   const { showError } = useToast()
+
+  // Exercises added on-the-fly this session (before any set is logged).
+  const [extraExercises, setExtraExercises] = useState([])
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  const exerciseMap = useMemo(() => {
+    const m = {}
+    for (const ex of allExercises) m[ex.id] = ex
+    return m
+  }, [allExercises])
+
+  // Template exercises ∪ on-the-fly extras ∪ exercises referenced by logged sets
+  // (the last reconstructs added exercises after a reload).
+  const displayExercises = useMemo(
+    () =>
+      mergeWorkoutExercises({
+        templateExercises,
+        extras: extraExercises,
+        sets: allSets,
+        exerciseMap,
+      }),
+    [templateExercises, extraExercises, allSets, exerciseMap],
+  )
+
+  const handleAddExercise = (ex) => {
+    setExtraExercises((prev) => (prev.some((e) => e.id === ex.id) ? prev : [...prev, ex]))
+    setPickerOpen(false)
+  }
 
   // Elapsed timer
   const [elapsed, setElapsed] = useState(0)
@@ -141,8 +175,7 @@ export default function WorkoutLog() {
           next.add(logged.id)
           return next
         })
-        const exerciseName =
-          templateExercises.find((te) => te.exercise_id === exerciseId)?.exercises?.name
+        const exerciseName = exerciseMap[exerciseId]?.name
         setActivePR({ weightKg: s.weightKg, exerciseName })
       }
 
@@ -194,19 +227,17 @@ export default function WorkoutLog() {
 
       {/* Exercise cards */}
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-4 pb-32">
-        {templateExercises.length === 0 ? (
+        {displayExercises.length === 0 ? (
           <p className="mt-10 text-center font-mono text-sm text-iron">
-            No exercises in this template
+            No exercises yet — add one below
           </p>
         ) : (
-          templateExercises.map((te) => {
-            const exercise = te.exercises
-            if (!exercise) return null
+          displayExercises.map((exercise) => {
             const logged = setsByExercise[exercise.id] ?? []
             const stg = staging[exercise.id] ?? null
             return (
               <ExerciseLogCard
-                key={te.exercise_id}
+                key={exercise.id}
                 exercise={exercise}
                 loggedSets={logged}
                 staging={stg}
@@ -221,6 +252,16 @@ export default function WorkoutLog() {
             )
           })
         )}
+
+        {/* Add exercise on-the-fly */}
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="heading min-h-tap flex items-center justify-center gap-2 rounded-xl border border-dashed border-dust/50 px-4 text-sm text-iron hover:border-iron hover:text-chalk"
+        >
+          <Plus size={18} strokeWidth={2.5} />
+          Add Exercise
+        </button>
       </main>
 
       {/* Rest timer — slides up from bottom */}
@@ -228,6 +269,14 @@ export default function WorkoutLog() {
 
       {/* PR flash overlay */}
       <PRFlashOverlay pr={activePR} onDismiss={() => setActivePR(null)} />
+
+      {/* Add-exercise picker */}
+      <ExercisePickerSheet
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={handleAddExercise}
+        excludeIds={new Set(displayExercises.map((e) => e.id))}
+      />
 
       {/* Finish confirm */}
       <ConfirmDialog

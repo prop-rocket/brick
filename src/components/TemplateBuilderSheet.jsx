@@ -2,14 +2,15 @@ import { useState, useMemo, useRef } from 'react'
 import { Search, X, ChevronUp, ChevronDown, Plus, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet.jsx'
 import { useExercises, useCreateCustomExercise, useCreateTemplate } from '../lib/gymApi.js'
-
-const GROUPS = ['Chest', 'Shoulders', 'Back', 'Arms', 'Legs', 'Glutes', 'Core', 'Cardio', 'Custom']
+import { GROUPS, GROUP_FILTERS, MUSCLE_GROUPS } from '../lib/muscleGroups.js'
 
 export default function TemplateBuilderSheet({ open, onClose }) {
   const [name, setName] = useState('')
   const [search, setSearch] = useState('')
+  const [groupFilter, setGroupFilter] = useState('All')
   const [selected, setSelected] = useState([])
   const [customName, setCustomName] = useState('')
+  const [customGroup, setCustomGroup] = useState(MUSCLE_GROUPS[0])
   const [error, setError] = useState(null)
   const customInputRef = useRef(null)
 
@@ -21,9 +22,13 @@ export default function TemplateBuilderSheet({ open, onClose }) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    if (!q) return exercises
-    return exercises.filter((e) => e.name.toLowerCase().includes(q))
-  }, [exercises, search])
+    return exercises.filter((e) => {
+      if (e.archived) return false
+      if (q && !e.name.toLowerCase().includes(q)) return false
+      if (groupFilter !== 'All' && (e.muscle_group ?? 'Custom') !== groupFilter) return false
+      return true
+    })
+  }, [exercises, search, groupFilter])
 
   const grouped = useMemo(() => {
     const out = {}
@@ -65,7 +70,7 @@ export default function TemplateBuilderSheet({ open, onClose }) {
     const trimmed = customName.trim()
     if (!trimmed) return
     try {
-      const ex = await createCustom.mutateAsync({ name: trimmed })
+      const ex = await createCustom.mutateAsync({ name: trimmed, muscle_group: customGroup })
       setSelected((s) => [...s, ex])
       setCustomName('')
       customInputRef.current?.focus()
@@ -82,6 +87,7 @@ export default function TemplateBuilderSheet({ open, onClose }) {
       await createTemplate.mutateAsync({ name: name.trim(), exercises: selected })
       setName('')
       setSearch('')
+      setGroupFilter('All')
       setSelected([])
       setCustomName('')
       onClose?.()
@@ -93,6 +99,7 @@ export default function TemplateBuilderSheet({ open, onClose }) {
   const handleClose = () => {
     setName('')
     setSearch('')
+    setGroupFilter('All')
     setSelected([])
     setCustomName('')
     setError(null)
@@ -178,6 +185,19 @@ export default function TemplateBuilderSheet({ open, onClose }) {
             )}
           </div>
 
+          {/* Muscle-group dropdown filter */}
+          <select
+            value={groupFilter}
+            onChange={(e) => setGroupFilter(e.target.value)}
+            className="min-h-tap rounded-lg border border-dust/40 bg-mortar px-3 text-sm text-chalk outline-none focus:border-brick-red"
+          >
+            {GROUP_FILTERS.map((g) => (
+              <option key={g} value={g}>
+                {g === 'All' ? 'All muscle groups' : g}
+              </option>
+            ))}
+          </select>
+
           {/* Full exercise list grouped by muscle */}
           <div className="max-h-64 overflow-y-auto rounded-xl border border-dust/30 bg-mortar">
             {GROUPS.map((group) => {
@@ -225,26 +245,40 @@ export default function TemplateBuilderSheet({ open, onClose }) {
           </div>
 
           {/* Custom exercise quick-add */}
-          <div className="flex gap-2">
-            <input
-              ref={customInputRef}
-              type="text"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddCustom()}
-              placeholder="New custom exercise…"
-              className="min-h-[44px] flex-1 rounded-lg border border-dust/40 bg-mortar px-3 text-sm text-chalk placeholder-iron outline-none focus:border-brick-red"
-            />
-            <button
-              type="button"
-              onClick={handleAddCustom}
-              disabled={!customName.trim() || createCustom.isPending}
-              aria-label="Add custom exercise"
-              className="heading flex min-h-[44px] items-center gap-1.5 rounded-lg bg-ash px-3 text-sm text-chalk hover:bg-dust/40 disabled:opacity-40"
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <input
+                ref={customInputRef}
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCustom()}
+                placeholder="New custom exercise…"
+                className="min-h-[44px] flex-1 rounded-lg border border-dust/40 bg-mortar px-3 text-sm text-chalk placeholder-iron outline-none focus:border-brick-red"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustom}
+                disabled={!customName.trim() || createCustom.isPending}
+                aria-label="Add custom exercise"
+                className="heading flex min-h-[44px] items-center gap-1.5 rounded-lg bg-ash px-3 text-sm text-chalk hover:bg-dust/40 disabled:opacity-40"
+              >
+                <Plus size={16} strokeWidth={2.5} />
+                Add
+              </button>
+            </div>
+            <select
+              value={customGroup}
+              onChange={(e) => setCustomGroup(e.target.value)}
+              aria-label="Custom exercise muscle group"
+              className="min-h-[40px] rounded-lg border border-dust/40 bg-mortar px-3 text-sm text-chalk outline-none focus:border-brick-red"
             >
-              <Plus size={16} strokeWidth={2.5} />
-              Add
-            </button>
+              {MUSCLE_GROUPS.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

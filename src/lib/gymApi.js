@@ -20,7 +20,7 @@ export function useExercises() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('exercises')
-        .select('id, name, muscle_group, is_custom, user_id')
+        .select('id, name, muscle_group, is_custom, user_id, archived')
         .order('name', { ascending: true })
       if (error) throw error
       return data ?? []
@@ -43,6 +43,52 @@ export function useCreateCustomExercise() {
       return data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: EXERCISES_KEY }),
+  })
+}
+
+export function useUpdateExercise() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  return useMutation({
+    mutationFn: async ({ id, name, muscle_group }) => {
+      if (!user) throw new Error('Not authenticated')
+      const { data, error } = await supabase
+        .from('exercises')
+        .update({ name: name.trim(), muscle_group })
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EXERCISES_KEY })
+      qc.invalidateQueries({ queryKey: TEMPLATES_KEY })
+    },
+  })
+}
+
+// Soft-delete: archive the exercise rather than DELETE. The FK columns
+// template_exercises.exercise_id / workout_sets.exercise_id have no ON DELETE
+// clause, so a hard delete of a referenced exercise would error. Archiving keeps
+// history intact while hiding the exercise from every picker.
+export function useDeleteExercise() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  return useMutation({
+    mutationFn: async (id) => {
+      if (!user) throw new Error('Not authenticated')
+      const { error } = await supabase
+        .from('exercises')
+        .update({ archived: true })
+        .eq('id', id)
+      if (error) throw error
+      return id
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EXERCISES_KEY })
+      qc.invalidateQueries({ queryKey: TEMPLATES_KEY })
+    },
   })
 }
 
@@ -376,11 +422,13 @@ export function useWorkoutSummary(workoutId) {
 
       const [{ data: templateEx, error: teErr }, { data: sets, error: sErr }] =
         await Promise.all([
-          supabase
-            .from('template_exercises')
-            .select('order, exercise_id, exercises(id, name, muscle_group)')
-            .eq('template_id', workout.template_id)
-            .order('order', { ascending: true }),
+          workout.template_id
+            ? supabase
+                .from('template_exercises')
+                .select('order, exercise_id, exercises(id, name, muscle_group)')
+                .eq('template_id', workout.template_id)
+                .order('order', { ascending: true })
+            : Promise.resolve({ data: [], error: null }),
           supabase
             .from('workout_sets')
             .select('id, exercise_id, set_number, reps, weight_kg')
@@ -397,6 +445,32 @@ export function useWorkoutSummary(workoutId) {
         setsByExercise[s.exercise_id].push(s)
       }
 
+      // Build the per-exercise breakdown from the union of the template's
+      // exercises and any exercises logged on-the-fly (present in sets but not
+      // in the template). The latter are resolved by a direct exercises lookup.
+      const exercises = []
+      const includedIds = new Set()
+      for (const te of templateEx ?? []) {
+        includedIds.add(te.exercise_id)
+        exercises.push({
+          ...te.exercises,
+          sets: setsByExercise[te.exercise_id] ?? [],
+        })
+      }
+
+      const extraIds = [...new Set((sets ?? []).map((s) => s.exercise_id))].filter(
+        (id) => id && !includedIds.has(id),
+      )
+      if (extraIds.length) {
+        const { data: extraEx } = await supabase
+          .from('exercises')
+          .select('id, name, muscle_group')
+          .in('id', extraIds)
+        for (const ex of extraEx ?? []) {
+          exercises.push({ ...ex, sets: setsByExercise[ex.id] ?? [] })
+        }
+      }
+
       const totalVolume = (sets ?? []).reduce(
         (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
         0,
@@ -408,10 +482,7 @@ export function useWorkoutSummary(workoutId) {
 
       return {
         workout,
-        exercises: (templateEx ?? []).map((te) => ({
-          ...te.exercises,
-          sets: setsByExercise[te.exercise_id] ?? [],
-        })),
+        exercises,
         totalSets: (sets ?? []).length,
         totalVolume,
         durationMs,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Dumbbell, Trophy } from 'lucide-react'
+import { Plus, Dumbbell, Trophy, ListChecks } from 'lucide-react'
 import {
   useWorkoutTemplates,
   useStartWorkout,
@@ -57,14 +57,24 @@ export default function Gym() {
     <section className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <h1 className="heading text-3xl">Gym</h1>
-        <button
-          type="button"
-          onClick={() => navigate('/gym/prs')}
-          className="heading min-h-tap inline-flex items-center gap-1.5 rounded-full bg-ash px-3 text-sm text-iron hover:bg-dust/40 hover:text-chalk"
-        >
-          <Trophy size={16} fill="currentColor" className="text-brick-red" />
-          <span>PRs</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/gym/exercises')}
+            className="heading min-h-tap inline-flex items-center gap-1.5 rounded-full bg-ash px-3 text-sm text-iron hover:bg-dust/40 hover:text-chalk"
+          >
+            <ListChecks size={16} className="text-brick-red" />
+            <span>Exercises</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/gym/prs')}
+            className="heading min-h-tap inline-flex items-center gap-1.5 rounded-full bg-ash px-3 text-sm text-iron hover:bg-dust/40 hover:text-chalk"
+          >
+            <Trophy size={16} fill="currentColor" className="text-brick-red" />
+            <span>PRs</span>
+          </button>
+        </div>
       </header>
 
       {/* Presets */}
