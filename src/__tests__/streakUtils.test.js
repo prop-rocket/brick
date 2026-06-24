@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   toDateStr,
   todayStr,
+  addDays,
   mondayOf,
   weekDateStrs,
   currentStreak,
@@ -31,6 +32,30 @@ describe('todayStr', () => {
     const now = new Date()
     const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     expect(todayStr()).toBe(expected)
+  })
+})
+
+describe('addDays', () => {
+  it('goes forward one day', () => {
+    expect(addDays('2024-01-15', 1)).toBe('2024-01-16')
+  })
+
+  it('goes back one day', () => {
+    expect(addDays('2024-01-15', -1)).toBe('2024-01-14')
+  })
+
+  it('crosses month boundaries', () => {
+    expect(addDays('2024-01-31', 1)).toBe('2024-02-01')
+    expect(addDays('2024-03-01', -1)).toBe('2024-02-29') // leap year
+  })
+
+  it('crosses year boundaries', () => {
+    expect(addDays('2024-12-31', 1)).toBe('2025-01-01')
+    expect(addDays('2025-01-01', -1)).toBe('2024-12-31')
+  })
+
+  it('returns the same day for n=0', () => {
+    expect(addDays('2024-06-10', 0)).toBe('2024-06-10')
   })
 })
 

@@ -105,20 +105,20 @@ export function useDeleteHabit() {
   })
 }
 
-// Toggle: if a log exists for (habit, today), delete it; otherwise insert one.
-// Optimistic update so the checkbox flips instantly.
+// Toggle: if a log exists for (habit, date), delete it; otherwise insert one.
+// `date` defaults to today (YYYY-MM-DD), but any past day can be passed to edit
+// it retroactively. Optimistic update so the checkbox flips instantly.
 export function useToggleHabitLog() {
   const qc = useQueryClient()
   const { user } = useAuth()
   return useMutation({
-    mutationFn: async (habitId) => {
+    mutationFn: async ({ habitId, date = todayStr() }) => {
       if (!user) throw new Error('Not authenticated')
-      const today = todayStr()
       const { data: existing, error: selectError } = await supabase
         .from('habit_logs')
         .select('id')
         .eq('habit_id', habitId)
-        .eq('completed_at', today)
+        .eq('completed_at', date)
         .maybeSingle()
       if (selectError) throw selectError
 
@@ -132,27 +132,26 @@ export function useToggleHabitLog() {
       }
       const { data, error } = await supabase
         .from('habit_logs')
-        .insert({ habit_id: habitId, user_id: user.id, completed_at: today })
+        .insert({ habit_id: habitId, user_id: user.id, completed_at: date })
         .select('id, habit_id, completed_at')
         .single()
       if (error) throw error
       return { habitId, action: 'add', log: data }
     },
-    onMutate: async (habitId) => {
+    onMutate: async ({ habitId, date = todayStr() }) => {
       await qc.cancelQueries({ queryKey: HABIT_LOGS_KEY })
       const previous = qc.getQueryData(HABIT_LOGS_KEY) ?? []
-      const today = todayStr()
       const existing = previous.find(
-        (l) => l.habit_id === habitId && l.completed_at === today,
+        (l) => l.habit_id === habitId && l.completed_at === date,
       )
       const next = existing
         ? previous.filter((l) => l.id !== existing.id)
         : [
             ...previous,
             {
-              id: `optimistic-${habitId}-${today}`,
+              id: `optimistic-${habitId}-${date}`,
               habit_id: habitId,
-              completed_at: today,
+              completed_at: date,
               _optimistic: true,
             },
           ]

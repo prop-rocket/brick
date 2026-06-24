@@ -16,6 +16,15 @@ export function todayStr() {
   return toDateStr(new Date())
 }
 
+// Returns the YYYY-MM-DD string `n` days after `dateStr` (negative `n` goes
+// back). Parsed at local noon so DST transitions can't shift the calendar day.
+export function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d, 12, 0, 0, 0)
+  date.setDate(date.getDate() + n)
+  return toDateStr(date)
+}
+
 // Monday of the week containing `date`, normalized to 00:00 local.
 export function mondayOf(date = new Date()) {
   const d = date instanceof Date ? new Date(date) : new Date(date)
