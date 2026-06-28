@@ -1,0 +1,8 @@
+# Supabase project config. Only the Edge Function settings Brick relies on are
+# pinned here; everything else uses Supabase defaults.
+
+# The sleep-sync endpoint is called by an iOS Shortcut that has no Supabase JWT.
+# It authenticates with a per-user opaque token (x-sync-token header) instead, so
+# the platform-level JWT check must be off. Deploys also pass --no-verify-jwt.
+[functions.sync-apple-sleep]
+verify_jwt = false

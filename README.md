@@ -43,6 +43,22 @@ Apply it via either:
 - **Supabase CLI** — `supabase db push` (after `supabase link --project-ref <ref>`), or
 - **Dashboard** — paste the contents of the SQL file into the Supabase SQL editor and run.
 
+Later migrations (`0002`–`0007`) add the fuel tracker, exercise library, and
+sleep tracking. Apply them in order (the CLI does this for you).
+
+### Apple Watch sleep sync (optional)
+
+Brick can pull Apple Watch sleep data via a daily iOS Shortcut that POSTs to a
+Supabase Edge Function. To enable it, apply `0007_sleep_tracking.sql` and deploy
+the function:
+
+```bash
+supabase functions deploy sync-apple-sleep --no-verify-jwt
+```
+
+Then follow [`docs/apple-watch-sleep-sync.md`](docs/apple-watch-sleep-sync.md) to
+build the Shortcut. Users connect from **Body → Sleep**.
+
 ### 4. Run
 
 ```bash

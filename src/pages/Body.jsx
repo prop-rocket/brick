@@ -1,11 +1,19 @@
 import { useMemo, useState } from 'react'
-import { Activity, Plus } from 'lucide-react'
+import { Activity, Moon, Plus, Trash2 } from 'lucide-react'
 import { useBodyLogs, useDeleteBodyLog } from '../lib/bodyApi.js'
+import {
+  useSleepLogs,
+  useSleepSyncToken,
+  useSetSyncToken,
+  useDeleteSleepLog,
+} from '../lib/sleepApi.js'
 import SectionTabs from '../components/charts/SectionTabs.jsx'
 import ChartCard from '../components/charts/ChartCard.jsx'
 import StatPill from '../components/charts/StatPill.jsx'
 import WeightChart from '../components/charts/WeightChart.jsx'
 import MeasurementsChart from '../components/charts/MeasurementsChart.jsx'
+import SleepChart from '../components/charts/SleepChart.jsx'
+import SleepSyncCard from '../components/SleepSyncCard.jsx'
 import LogWeightSheet from '../components/LogWeightSheet.jsx'
 import LogMeasurementsSheet from '../components/LogMeasurementsSheet.jsx'
 import BodyLogRow from '../components/BodyLogRow.jsx'
@@ -14,6 +22,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 const SECTION_OPTIONS = [
   { value: 'weight', label: 'Weight' },
   { value: 'measurements', label: 'Measurements' },
+  { value: 'sleep', label: 'Sleep' },
 ]
 
 const CHART_DAYS = 84 // 12 weeks
@@ -136,14 +145,15 @@ export default function Body() {
 
       <SectionTabs value={view} onChange={setView} options={SECTION_OPTIONS} />
 
-      {view === 'weight' ? (
+      {view === 'weight' && (
         <WeightView
           chartData={weightChartData}
           summary={weightSummary}
           loading={isLoading}
           onLog={() => setWeightSheetOpen(true)}
         />
-      ) : (
+      )}
+      {view === 'measurements' && (
         <MeasurementsView
           chartData={measChartData}
           summary={measSummary}
@@ -151,8 +161,9 @@ export default function Body() {
           onLog={() => setMeasSheetOpen(true)}
         />
       )}
+      {view === 'sleep' && <SleepView />}
 
-      {!isLoading && historyEntries.length > 0 && (
+      {view !== 'sleep' && !isLoading && historyEntries.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-iron">
             History
@@ -331,11 +342,169 @@ function Latest({ label, value }) {
   )
 }
 
-function EmptyCard({ title, message }) {
+const SLEEP_CHART_NIGHTS = 30
+
+function fmtDuration(min) {
+  if (min == null) return '—'
+  return `${Math.floor(min / 60)}h ${Math.round(min % 60)}m`
+}
+
+function sleepDayLabel(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function SleepView() {
+  const { data: logs = [], isLoading } = useSleepLogs()
+  const { data: tokenRow } = useSleepSyncToken()
+  const setToken = useSetSyncToken()
+  const deleteLog = useDeleteSleepLog()
+  const [pendingDelete, setPendingDelete] = useState(null)
+
+  const chartData = useMemo(
+    () =>
+      logs.slice(-SLEEP_CHART_NIGHTS).map((l) => ({
+        label: sleepDayLabel(l.logged_date),
+        hours:
+          l.duration_minutes != null
+            ? Math.round((l.duration_minutes / 60) * 10) / 10
+            : null,
+        score: l.sleep_score,
+      })),
+    [logs],
+  )
+
+  const latest = logs[logs.length - 1] ?? null
+  const history = useMemo(() => [...logs].reverse(), [logs])
+
+  const handleGenerate = async () => {
+    try {
+      await setToken.mutateAsync()
+    } catch (e) {
+      console.error('Failed to set sync token', e)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!pendingDelete) return
+    const id = pendingDelete.id
+    setPendingDelete(null)
+    await deleteLog.mutateAsync(id)
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SleepSyncCard
+        token={tokenRow?.token ?? null}
+        lastUsedAt={tokenRow?.last_used_at ?? null}
+        onGenerate={handleGenerate}
+        generating={setToken.isPending}
+      />
+
+      {isLoading ? (
+        <Loading />
+      ) : logs.length === 0 ? (
+        <EmptyCard
+          title="No sleep data yet"
+          message="Once your Shortcut runs, last night’s sleep shows up here."
+          icon={Moon}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between rounded-2xl bg-ash px-4 py-4">
+            <div className="flex flex-col">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-iron">
+                Last night
+              </span>
+              <span className="mt-0.5 font-mono text-3xl text-chalk">
+                {fmtDuration(latest?.duration_minutes)}
+              </span>
+            </div>
+            {latest?.sleep_score != null && (
+              <div className="flex flex-col items-end">
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-iron">
+                  Score
+                </span>
+                <span className="mt-0.5 font-mono text-3xl text-brick-red">
+                  {latest.sleep_score}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <ChartCard title="Sleep — last 30 nights">
+            <SleepChart data={chartData} />
+            {latest && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <StatPill label="Deep" value={fmtDuration(latest.deep_minutes)} />
+                <StatPill label="REM" value={fmtDuration(latest.rem_minutes)} />
+                <StatPill label="Light" value={fmtDuration(latest.light_minutes)} />
+                <StatPill label="Awake" value={fmtDuration(latest.awake_minutes)} />
+              </div>
+            )}
+          </ChartCard>
+
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-iron">
+              History
+            </p>
+            <ul className="flex flex-col gap-2">
+              {history.map((log) => (
+                <SleepLogRow key={log.id} log={log} onDelete={setPendingDelete} />
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete sleep entry?"
+        message={
+          pendingDelete
+            ? `Sleep from ${new Date(pendingDelete.logged_date).toLocaleDateString()} will be removed.`
+            : null
+        }
+        confirmLabel="Delete"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </div>
+  )
+}
+
+function SleepLogRow({ log, onDelete }) {
+  return (
+    <li className="flex items-center gap-3 rounded-xl bg-ash px-4 py-3">
+      <div className="flex flex-1 flex-col">
+        <span className="font-mono text-sm text-chalk">
+          {sleepDayLabel(log.logged_date)}
+        </span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-iron">
+          {fmtDuration(log.duration_minutes)}
+          {log.sleep_score != null ? ` · score ${log.sleep_score}` : ''}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={() => onDelete(log)}
+        aria-label="Delete sleep entry"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-iron hover:text-brick-red"
+      >
+        <Trash2 size={16} />
+      </button>
+    </li>
+  )
+}
+
+function EmptyCard({ title, message, icon: Icon = Activity }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-dust/40 bg-ash/40 px-6 py-12 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ash text-brick-red">
-        <Activity size={26} />
+        <Icon size={26} />
       </div>
       <div>
         <h2 className="heading text-lg">{title}</h2>
